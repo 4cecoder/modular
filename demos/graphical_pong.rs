@@ -4,12 +4,14 @@
 //! Features proper graphics, menu system, and game states.
 
 use modular_game_engine::*;
+use specs::{VecStorage, DenseVecStorage};
+use specs_derive::{Component, storage};
 use winit::{
     event::{Event, WindowEvent, KeyboardInput, ElementState, VirtualKeyCode},
     event_loop::{ControlFlow, EventLoop},
     window::{WindowBuilder, Window},
 };
-use wgpu::{util::DeviceExt, SurfaceError};
+use wgpu::{util::DeviceExt, SurfaceError, StoreOp};
 use std::time::{Duration, Instant};
 
 // Game constants

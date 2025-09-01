@@ -364,14 +364,14 @@ pub struct PongCollisionSystem;
 impl<'a> System<'a> for PongCollisionSystem {
     type SystemData = (
         Entities<'a>,
-        ReadStorage<'a, Position>,
+        WriteStorage<'a, Position>,
         WriteStorage<'a, Velocity>,
         ReadStorage<'a, Ball>,
         ReadStorage<'a, Paddle>,
         Write<'a, Score>,
     );
 
-    fn run(&mut self, (entities, positions, mut velocities, balls, paddles, mut score): Self::SystemData) {
+    fn run(&mut self, (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData) {
         for (ball_entity, ball_pos, _) in (&entities, &positions, &balls).join() {
             // Ball collision with top/bottom walls
             if ball_pos.y <= 0.0 || ball_pos.y >= WINDOW_HEIGHT as f32 - BALL_SIZE {
@@ -381,7 +381,7 @@ impl<'a> System<'a> for PongCollisionSystem {
             }
 
             // Ball collision with paddles
-            for (paddle_pos, _, _) in (&positions, &paddles).join() {
+            for (paddle_pos, _) in (&positions, &paddles).join() {
                 if check_paddle_ball_collision(ball_pos, paddle_pos) {
                     if let Some(vel) = velocities.get_mut(ball_entity) {
                         vel.x = -vel.x;
