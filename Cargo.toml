@@ -1,0 +1,68 @@
+[package]
+name = "modular_game_engine"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+specs = { version = "0.18", features = ["specs-derive"] }
+specs-derive = "0.4"
+nalgebra = "0.32"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+winit = "0.28"
+wgpu = "0.16"
+image = "0.24"
+rodio = "0.17"
+rand = "0.8"
+env_logger = "0.10"
+pollster = "0.3"
+bytemuck = { version = "1.13", features = ["derive"] }
+minifb = "0.24"
+freetype-rs = "0.26"
+rusttype = "0.9"
+
+[dev-dependencies]
+criterion = "0.5"
+
+[[bin]]
+name = "ecs_demo"
+path = "demos/ecs_demo.rs"
+
+[[bin]]
+name = "physics_demo"
+path = "demos/physics_demo.rs"
+
+[[bin]]
+name = "rendering_demo"
+path = "demos/rendering_demo.rs"
+
+[[bin]]
+name = "pong_demo"
+path = "demos/pong_demo.rs"
+
+[[bin]]
+name = "graphical_pong"
+path = "demos/graphical_pong.rs"
+
+[[bin]]
+name = "simple_graphical_pong"
+path = "demos/simple_graphical_pong.rs"
+
+[[bin]]
+name = "window_pong"
+path = "demos/window_pong.rs"
+
+[[bin]]
+name = "improved_pong"
+path = "demos/improved_pong.rs"
+
+[[bin]]
+name = "complete_game"
+path = "demos/complete_game.rs"
+
+[[bin]]
+name = "breakout"
+path = "demos/breakout.rs"

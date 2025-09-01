@@ -1,0 +1,9 @@
+# Rust
+target/
+
+# Database or build artifacts
+.crush/
+
+# OS
+.DS_Store
+Thumbs.db
