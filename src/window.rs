@@ -84,7 +84,12 @@ impl WindowManager {
 
     /// Update the window (call this each frame)
     pub fn update(&mut self) {
-        // Handle window events
+        // Pump the minifb event queue so input states and window events are updated.
+        // `update` returns whether the window is still open. We ignore the return
+        // value here and use `is_open`/`should_close` for state.
+        let _ = self.window.update();
+
+        // Handle simple key-based quit checks after events are processed.
         if self.window.is_key_down(Key::Escape) || self.window.is_key_down(Key::Q) {
             self.should_close = true;
         }

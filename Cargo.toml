@@ -40,24 +40,8 @@ name = "rendering_demo"
 path = "demos/rendering_demo.rs"
 
 [[bin]]
-name = "pong_demo"
-path = "demos/pong_demo.rs"
-
-[[bin]]
-name = "graphical_pong"
-path = "demos/graphical_pong.rs"
-
-[[bin]]
-name = "simple_graphical_pong"
-path = "demos/simple_graphical_pong.rs"
-
-[[bin]]
-name = "window_pong"
-path = "demos/window_pong.rs"
-
-[[bin]]
-name = "improved_pong"
-path = "demos/improved_pong.rs"
+name = "pong"
+path = "demos/pong.rs"
 
 [[bin]]
 name = "complete_game"
@@ -66,3 +50,19 @@ path = "demos/complete_game.rs"
 [[bin]]
 name = "breakout"
 path = "demos/breakout.rs"
+
+[[bin]]
+name = "audio_demo"
+path = "demos/audio_demo.rs"
+
+[[bin]]
+name = "input_demo"
+path = "demos/input_demo.rs"
+
+[[bin]]
+name = "ui_demo"
+path = "demos/ui_demo.rs"
+
+[[bin]]
+name = "particle_demo"
+path = "demos/particle_demo.rs"

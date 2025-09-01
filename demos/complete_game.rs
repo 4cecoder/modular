@@ -19,6 +19,7 @@ const PADDLE_SPEED: f32 = 300.0;
 const BALL_SPEED: f32 = 400.0;
 
 // Game entity data
+#[allow(dead_code)]
 struct GameEntities {
     player_paddle: specs::Entity,
     ai_paddle: specs::Entity,
@@ -54,7 +55,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let entities = create_game_entities(&mut world);
 
     // Set up systems
-    let mut dispatcher = specs::DispatcherBuilder::new()
+        let dispatcher = specs::DispatcherBuilder::new()
         .with(PongInputSystem, "input", &[])
         .with(PongAISystem, "ai", &["input"])
         .with(PhysicsSystem, "physics", &["ai"])
@@ -229,6 +230,7 @@ fn create_game_entities(world: &mut World) -> GameEntities {
 
 // Custom gameplay state that integrates with ECS
 struct GameplayState {
+    #[allow(dead_code)]
     entities: GameEntities,
     dispatcher: specs::Dispatcher<'static, 'static>,
     world: World,
@@ -253,7 +255,7 @@ impl GameplayState {
 }
 
 impl game_state::GameState for GameplayState {
-    fn on_enter(&mut self, _context: &mut game_state::StateContext) {
+            fn on_enter(&mut self, _context: &mut game_state::StateContext) {
         println!("🎮 Starting gameplay!");
         self.score = (0, 0);
         self.game_time = 0.0;
@@ -262,9 +264,9 @@ impl game_state::GameState for GameplayState {
         reset_ball(&mut self.world);
     }
 
-    fn update(
+        fn update(
         &mut self,
-        context: &mut game_state::StateContext,
+        _context: &mut game_state::StateContext,
         delta_time: f32,
     ) -> game_state::StateTransition {
         self.game_time += delta_time;
@@ -305,7 +307,7 @@ impl game_state::GameState for GameplayState {
         None
     }
 
-    fn render(&mut self, context: &mut game_state::StateContext) {
+        fn render(&mut self, _context: &mut game_state::StateContext) {
         // In a real implementation, this would render the game using the 2D renderer
         println!(
             "🎮 Gameplay - Score: {} | AI: {} | Time: {:.1}s",
@@ -342,7 +344,7 @@ impl<'a> System<'a> for PongInputSystem {
         Read<'a, crate::InputState>,
     );
 
-    fn run(&mut self, (mut velocities, paddles, input_state): Self::SystemData) {
+        fn run(&mut self, (mut velocities, paddles, _input_state): Self::SystemData) {
         for (velocity, paddle) in (&mut velocities, &paddles).join() {
             if paddle.player_controlled {
                 velocity.y = 0.0;
@@ -417,7 +419,7 @@ impl<'a> System<'a> for PongCollisionSystem {
 
             // Ball collision with paddles
             for (paddle_pos, _) in (&positions, &paddles).join() {
-                if check_paddle_ball_collision(ball_pos, paddle_pos) {
+                if check_paddle_ball_collision(&ball_pos, paddle_pos) {
                     if let Some(vel) = velocities.get_mut(ball_entity) {
                         vel.x = -vel.x;
 
@@ -479,7 +481,7 @@ impl<'a> System<'a> for PongGameLogicSystem {
         Read<'a, Time>,
     );
 
-    fn run(&mut self, (mut positions, mut velocities, balls, time): Self::SystemData) {
+        fn run(&mut self, (_positions, _velocities, _balls, _time): Self::SystemData) {
         // Simple game logic - ball reset is handled in collision system
     }
 }

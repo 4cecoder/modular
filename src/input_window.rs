@@ -15,6 +15,7 @@ pub struct WindowInputState {
     pub mouse_position: (i32, i32),
     pub mouse_delta: (i32, i32),
     pub mouse_buttons: HashSet<MouseButton>,
+    pub mouse_buttons_just_pressed: HashSet<MouseButton>,
     pub window_focused: bool,
     pub window_resized: Option<(usize, usize)>,
 }
@@ -28,6 +29,7 @@ impl Default for WindowInputState {
             mouse_position: (0, 0),
             mouse_delta: (0, 0),
             mouse_buttons: HashSet::new(),
+            mouse_buttons_just_pressed: HashSet::new(),
             window_focused: true,
             window_resized: None,
         }
@@ -55,6 +57,11 @@ impl WindowInputState {
         self.mouse_buttons.contains(&button)
     }
 
+    /// Check if a mouse button was just pressed this frame
+    pub fn is_mouse_button_just_pressed(&self, button: MouseButton) -> bool {
+        self.mouse_buttons_just_pressed.contains(&button)
+    }
+
     /// Get mouse position as tuple
     pub fn mouse_pos(&self) -> (i32, i32) {
         self.mouse_position
@@ -70,6 +77,7 @@ impl WindowInputState {
         self.keys_just_pressed.clear();
         self.keys_just_released.clear();
         self.mouse_delta = (0, 0);
+        self.mouse_buttons_just_pressed.clear();
         self.window_resized = None;
     }
 }
@@ -86,7 +94,6 @@ pub enum MouseButton {
 pub struct WindowInputManager {
     current_state: WindowInputState,
     previous_keys: HashSet<Key>,
-    #[allow(dead_code)]
     previous_mouse_buttons: HashSet<MouseButton>,
     previous_mouse_pos: (i32, i32),
 }
@@ -161,11 +168,35 @@ impl WindowInputManager {
 
         // Update mouse state (simplified - minifb has limited mouse support)
         // In a real implementation, you'd use a more advanced input library
+                let (mouse_x, mouse_y) = window.get_mouse_pos(minifb::MouseMode::Clamp).unwrap_or((0.0, 0.0));
+        self.current_state.mouse_position = (mouse_x as i32, mouse_y as i32);
+
         self.current_state.mouse_delta = (
             self.current_state.mouse_position.0 - self.previous_mouse_pos.0,
             self.current_state.mouse_position.1 - self.previous_mouse_pos.1,
         );
         self.previous_mouse_pos = self.current_state.mouse_position;
+
+        // Update mouse buttons
+        let mut current_mouse_buttons = HashSet::new();
+        if window.get_mouse_down(minifb::MouseButton::Left) {
+            current_mouse_buttons.insert(MouseButton::Left);
+        }
+        if window.get_mouse_down(minifb::MouseButton::Right) {
+            current_mouse_buttons.insert(MouseButton::Right);
+        }
+        if window.get_mouse_down(minifb::MouseButton::Middle) {
+            current_mouse_buttons.insert(MouseButton::Middle);
+        }
+
+        for button in &current_mouse_buttons {
+            if !self.previous_mouse_buttons.contains(button) {
+                self.current_state.mouse_buttons_just_pressed.insert(*button);
+            }
+        }
+
+        self.current_state.mouse_buttons = current_mouse_buttons.clone();
+        self.previous_mouse_buttons = current_mouse_buttons;
 
         // Update window state
         self.current_state.window_focused = true; // Simplified
@@ -189,6 +220,28 @@ impl WindowInputManager {
     /// Check for quit condition
     pub fn should_quit(&self) -> bool {
         self.current_state.is_key_pressed(Key::Escape) || self.current_state.is_key_pressed(Key::Q)
+    }
+
+    /// Set mouse position (for winit integration)
+    pub fn set_mouse_position(&mut self, x: i32, y: i32) {
+        self.current_state.mouse_position = (x, y);
+    }
+
+    /// Set mouse button pressed (for winit integration)
+    pub fn set_mouse_button_pressed(&mut self, button: MouseButton) {
+        self.current_state.mouse_buttons.insert(button);
+    }
+
+    /// Set mouse button released (for winit integration)
+    pub fn set_mouse_button_released(&mut self, button: MouseButton) {
+        self.current_state.mouse_buttons.remove(&button);
+    }
+
+    /// Update input state from winit event (for winit integration)
+        pub fn update_from_winit_event(&mut self, _event: &winit::event::Event<()>) {
+        // This method is a placeholder for more complex winit event processing
+        // For now, it just clears frame state and relies on direct setters
+        self.current_state.clear_frame_state();
     }
 }
 

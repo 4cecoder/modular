@@ -8,7 +8,7 @@
 
 use modular_game_engine::physics::{Force, Mass, PhysicsMaterial};
 use modular_game_engine::*;
-use specs::{RunNow, World, WorldExt};
+use specs::{World, WorldExt};
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -192,8 +192,8 @@ impl<'a> System<'a> for CollisionSystem {
         // Check collisions between dynamic entities
         for i in 0..dynamic_entities.len() {
             for j in (i + 1)..dynamic_entities.len() {
-                let (entity_a, pos_a, collider_a, vel_a) = &dynamic_entities[i];
-                let (entity_b, pos_b, collider_b, vel_b) = &dynamic_entities[j];
+                                let (entity_a, pos_a, collider_a, _vel_a) = &dynamic_entities[i];
+                let (entity_b, pos_b, collider_b, _vel_b) = &dynamic_entities[j];
 
                 if check_collision(pos_a, collider_a, pos_b, collider_b) {
                     // Simple collision response - reverse velocities

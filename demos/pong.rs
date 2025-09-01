@@ -54,6 +54,7 @@ impl ParticleSystem {
         }
     }
 
+        #[allow(dead_code)]
     fn emit(&mut self, x: f32, y: f32, count: usize, color: renderer_2d::Color) {
         for _ in 0..count {
             let angle = (rand::random::<f32>() - 0.5) * std::f32::consts::PI * 2.0;
@@ -126,6 +127,7 @@ enum Difficulty {
 }
 
 impl Difficulty {
+        #[allow(dead_code)]
     fn ai_speed_multiplier(&self) -> f32 {
         match self {
             Difficulty::Easy => 0.6,
@@ -148,7 +150,8 @@ enum GameState {
     Menu,
     DifficultySelect,
     Playing,
-    Paused,
+        Paused,
+    #[allow(dead_code)]
     Scored { points: u32, is_player: bool },
     GameOver { winner: String },
 }
@@ -380,7 +383,7 @@ impl ImprovedPongGame {
                     self.render_pause_overlay(renderer);
                 }
             }
-            GameState::Scored { points, is_player } => {
+                                                            GameState::Scored { points, is_player } => {
                 self.render_gameplay(renderer);
                 self.render_score_effect(renderer, points, is_player);
             }
@@ -514,7 +517,7 @@ impl ImprovedPongGame {
 
     fn render_gameplay(&self, renderer: &mut renderer_2d::Renderer2D) {
         // Draw ball trail
-        for (i, (x, y, alpha)) in self.ball_trail.iter().enumerate() {
+                for (_i, (x, y, alpha)) in self.ball_trail.iter().enumerate() {
             let trail_color = renderer_2d::Color::rgba(
                 (255.0 * alpha) as u8,
                 (255.0 * alpha) as u8,
@@ -666,10 +669,12 @@ impl ImprovedPongGame {
         );
     }
 
+        #[allow(dead_code)]
+        #[allow(dead_code)]
     fn render_score_effect(
         &self,
         renderer: &mut renderer_2d::Renderer2D,
-        points: u32,
+        _points: u32,
         is_player: bool,
     ) {
         let color = if is_player {
@@ -767,7 +772,11 @@ fn main() {
         vsync: true,
     };
 
-    let mut render_context = renderer_2d::RenderContext::new(window_config).unwrap();
+        let mut render_context = renderer_2d::RenderContext::new(window_config).unwrap();
+
+    // Load a custom font
+    render_context.renderer.load_font("game_font", "assets/fonts/DejaVuSans.ttf").unwrap();
+    render_context.renderer.set_default_font("game_font");
     let mut input_manager = input_window::WindowInputManager::new();
     let mut pong_game = ImprovedPongGame::new();
 
@@ -915,7 +924,7 @@ impl<'a> System<'a> for ImprovedPongCollisionSystem {
             }
 
             // Check paddle collisions
-            for (paddle_entity, paddle_pos) in &paddle_positions {
+                        for (_paddle_entity, paddle_pos) in &paddle_positions {
                 if check_paddle_ball_collision(ball_pos, paddle_pos) {
                     if let Some(vel) = velocities.get_mut(*ball_entity) {
                         vel.x = -vel.x;
@@ -981,7 +990,7 @@ impl<'a> System<'a> for ImprovedPongGameLogicSystem {
         Read<'a, Time>,
     );
 
-    fn run(&mut self, (mut positions, mut velocities, balls, time): Self::SystemData) {
+        fn run(&mut self, (_positions, _velocities, _balls, _time): Self::SystemData) {
         // Simple game logic - ball reset is handled in collision system
     }
 }

@@ -224,7 +224,9 @@ fn main() {
         "  ✓ Visual Effects: {}",
         game_visuals.active_effects_count()
     );
-    println!("  ✓ Scoring Rules: {}", game_scoring.win_conditions.len());
+    // Replace with a valid method or remove if not available
+    // println!("  ✓ Scoring Rules: {}", game_scoring.win_conditions_count());
+    println!("  ✓ Scoring System initialized.");
     println!("  ✓ Trail Effects: {}", game_trails.get_trail_ids().len());
 
     println!("\n🎉 All systems successfully integrated!");

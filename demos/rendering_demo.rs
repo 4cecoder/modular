@@ -8,7 +8,7 @@
 
 use modular_game_engine::rendering::Camera2D;
 use modular_game_engine::*;
-use specs::{RunNow, World, WorldExt};
+use specs::{World, WorldExt};
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -79,7 +79,7 @@ fn create_rendering_entities(world: &mut World) {
     println!("Creating rendering entities...");
 
     // Create player with animation
-    let player_entity = world
+        let _player_entity = world
         .create_entity_with_components()
         .with(Position::new(0.0, 0.0))
         .with(Velocity::new(30.0, 20.0))
