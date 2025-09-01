@@ -33,6 +33,8 @@ pub struct WindowManager {
     window: Window,
     config: WindowConfig,
     should_close: bool,
+    // Store previous key states to detect presses and releases
+    previous_keys: HashSet<Key>,
 }
 
 impl WindowManager {
@@ -52,6 +54,7 @@ impl WindowManager {
             window,
             config,
             should_close: false,
+            previous_keys: HashSet::new(),
         })
     }
 
@@ -70,29 +73,44 @@ impl WindowManager {
         self.window.set_title(title);
     }
 
-    /// Check if a key is currently pressed
-    pub fn is_key_pressed(&self, key: Key) -> bool {
-        self.window.is_key_down(key)
-    }
+    /// Update the window and collect events (call this each frame)
+    pub fn update(&mut self) -> Vec<WindowEvent> {
+        let mut events = Vec::new();
 
-    /// Get all currently pressed keys
-    pub fn get_pressed_keys(&self) -> HashSet<Key> {
-        // Note: minifb doesn't provide a way to enumerate all pressed keys
-        // This would need to be implemented differently or use a different library
-        HashSet::new()
-    }
-
-    /// Update the window (call this each frame)
-    pub fn update(&mut self) {
         // Pump the minifb event queue so input states and window events are updated.
-        // `update` returns whether the window is still open. We ignore the return
-        // value here and use `is_open`/`should_close` for state.
-        let _ = self.window.update();
+        // Pump the minifb event queue so input states and window events are updated.
+        self.window.update();
 
-        // Handle simple key-based quit checks after events are processed.
-        if self.window.is_key_down(Key::Escape) || self.window.is_key_down(Key::Q) {
+        if !self.window.is_open() {
             self.should_close = true;
+            events.push(WindowEvent::WindowClosed);
         }
+
+        // Handle key presses and releases
+        let current_keys: HashSet<Key> = self.window.get_keys().into_iter().collect();
+
+        for key in current_keys.difference(&self.previous_keys) {
+            events.push(WindowEvent::KeyPressed(*key));
+        }
+
+        for key in self.previous_keys.difference(&current_keys) {
+            events.push(WindowEvent::KeyReleased(*key));
+        }
+
+        self.previous_keys = current_keys;
+
+        // Check for window resize
+        let (current_width, current_height) = self.window.get_size();
+        if current_width != self.config.width || current_height != self.config.height {
+            self.config.width = current_width;
+            self.config.height = current_height;
+            events.push(WindowEvent::WindowResized {
+                width: current_width,
+                height: current_height,
+            });
+        }
+
+        events
     }
 
     /// Get mutable reference to the underlying window
@@ -107,6 +125,7 @@ impl WindowManager {
 }
 
 /// Window event handling
+#[derive(Debug)]
 pub enum WindowEvent {
     KeyPressed(Key),
     KeyReleased(Key),
@@ -114,21 +133,5 @@ pub enum WindowEvent {
     WindowResized { width: usize, height: usize },
 }
 
-/// Window event iterator (placeholder for more advanced event handling)
-pub struct WindowEvents<'a> {
-    #[allow(dead_code)]
-    window: &'a Window,
-}
-
-impl<'a> WindowEvents<'a> {
-    pub fn new(window: &'a Window) -> Self {
-        Self { window }
-    }
-
-    // In a real implementation, this would collect and return events
-    // For now, it's a placeholder
-    #[allow(clippy::should_implement_trait)]
-    pub fn next(&mut self) -> Option<WindowEvent> {
-        None
-    }
-}
+// The WindowEvents struct and its impl are no longer needed as update() now returns Vec<WindowEvent>
+// and the responsibility of iterating events is shifted to the caller.
