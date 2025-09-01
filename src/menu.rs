@@ -12,11 +12,27 @@ pub enum MenuItemType {
     /// Simple action button
     Button { text: String, action: MenuAction },
     /// Toggle option
-    Toggle { text: String, value: bool, action: MenuAction },
+    Toggle {
+        text: String,
+        value: bool,
+        action: MenuAction,
+    },
     /// Slider with min/max values
-    Slider { text: String, value: f32, min: f32, max: f32, step: f32, action: MenuAction },
+    Slider {
+        text: String,
+        value: f32,
+        min: f32,
+        max: f32,
+        step: f32,
+        action: MenuAction,
+    },
     /// Selection from multiple options
-    Selector { text: String, options: Vec<String>, selected: usize, action: MenuAction },
+    Selector {
+        text: String,
+        options: Vec<String>,
+        selected: usize,
+        action: MenuAction,
+    },
     /// Display-only text
     Label { text: String },
     /// Spacer for layout
@@ -95,12 +111,11 @@ impl MenuItem {
 
     pub fn is_selectable(&self) -> bool {
         match &self.item_type {
-            MenuItemType::Button { .. } |
-            MenuItemType::Toggle { .. } |
-            MenuItemType::Slider { .. } |
-            MenuItemType::Selector { .. } => self.enabled,
-            MenuItemType::Label { .. } |
-            MenuItemType::Spacer { .. } => false,
+            MenuItemType::Button { .. }
+            | MenuItemType::Toggle { .. }
+            | MenuItemType::Slider { .. }
+            | MenuItemType::Selector { .. } => self.enabled,
+            MenuItemType::Label { .. } | MenuItemType::Spacer { .. } => false,
         }
     }
 }
@@ -131,8 +146,8 @@ impl Default for MenuConfig {
             item_height: 40.0,
             item_width: 250.0,
             selected_color: [1.0, 1.0, 0.0, 1.0], // Yellow
-            normal_color: [1.0, 1.0, 1.0, 1.0],    // White
-            disabled_color: [0.5, 0.5, 0.5, 1.0],  // Gray
+            normal_color: [1.0, 1.0, 1.0, 1.0],   // White
+            disabled_color: [0.5, 0.5, 0.5, 1.0], // Gray
             allow_wrapping: true,
             center_items: true,
         }
@@ -232,7 +247,11 @@ impl MenuSystem {
 
         let mut prev_index = self.selected_index;
         loop {
-            prev_index = if prev_index == 0 { self.items.len() - 1 } else { prev_index - 1 };
+            prev_index = if prev_index == 0 {
+                self.items.len() - 1
+            } else {
+                prev_index - 1
+            };
             if prev_index == self.selected_index {
                 break; // Wrapped around, no selectable items
             }
@@ -274,10 +293,10 @@ impl MenuSystem {
     fn get_item_action(&self, item: &MenuItem) -> Option<MenuAction> {
         match &item.item_type {
             MenuItemType::Button { action, .. } => Some(action.clone()),
-            MenuItemType::Toggle { action, value, .. } => {
+            MenuItemType::Toggle { action, .. } => {
                 // For toggles, we might want to return a modified action
                 Some(action.clone())
-            },
+            }
             MenuItemType::Slider { action, .. } => Some(action.clone()),
             MenuItemType::Selector { action, .. } => Some(action.clone()),
             _ => None,
@@ -318,7 +337,9 @@ impl MenuSystem {
         }
 
         // Find the first selectable item if current selection is invalid
-        if self.selected_index >= self.items.len() || !self.items[self.selected_index].is_selectable() {
+        if self.selected_index >= self.items.len()
+            || !self.items[self.selected_index].is_selectable()
+        {
             for (index, item) in self.items.iter().enumerate() {
                 if item.is_selectable() {
                     self.selected_index = index;
@@ -345,7 +366,9 @@ impl MenuSystem {
         }
 
         // Activation
-        if input_state.is_key_just_pressed(Key::Enter) || input_state.is_key_just_pressed(Key::Space) {
+        if input_state.is_key_just_pressed(Key::Enter)
+            || input_state.is_key_just_pressed(Key::Space)
+        {
             self.activate_selected();
         }
 
@@ -383,7 +406,10 @@ impl MenuSystem {
 
     /// Get all selectable items
     pub fn get_selectable_items(&self) -> Vec<&MenuItem> {
-        self.items.iter().filter(|item| item.is_selectable()).collect()
+        self.items
+            .iter()
+            .filter(|item| item.is_selectable())
+            .collect()
     }
 
     /// Create a preset main menu
@@ -393,20 +419,29 @@ impl MenuSystem {
 
         let mut menu = Self::new(config);
 
-        menu.add_item(MenuItem::new("play", MenuItemType::Button {
-            text: "Play Game".to_string(),
-            action: MenuAction::ChangeState("gameplay".to_string()),
-        }));
+        menu.add_item(MenuItem::new(
+            "play",
+            MenuItemType::Button {
+                text: "Play Game".to_string(),
+                action: MenuAction::ChangeState("gameplay".to_string()),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("settings", MenuItemType::Button {
-            text: "Settings".to_string(),
-            action: MenuAction::ChangeState("settings".to_string()),
-        }));
+        menu.add_item(MenuItem::new(
+            "settings",
+            MenuItemType::Button {
+                text: "Settings".to_string(),
+                action: MenuAction::ChangeState("settings".to_string()),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("quit", MenuItemType::Button {
-            text: "Quit".to_string(),
-            action: MenuAction::Quit,
-        }));
+        menu.add_item(MenuItem::new(
+            "quit",
+            MenuItemType::Button {
+                text: "Quit".to_string(),
+                action: MenuAction::Quit,
+            },
+        ));
 
         menu
     }
@@ -418,25 +453,37 @@ impl MenuSystem {
 
         let mut menu = Self::new(config);
 
-        menu.add_item(MenuItem::new("easy", MenuItemType::Button {
-            text: "Easy".to_string(),
-            action: MenuAction::Custom("difficulty_easy".to_string()),
-        }));
+        menu.add_item(MenuItem::new(
+            "easy",
+            MenuItemType::Button {
+                text: "Easy".to_string(),
+                action: MenuAction::Custom("difficulty_easy".to_string()),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("normal", MenuItemType::Button {
-            text: "Normal".to_string(),
-            action: MenuAction::Custom("difficulty_normal".to_string()),
-        }));
+        menu.add_item(MenuItem::new(
+            "normal",
+            MenuItemType::Button {
+                text: "Normal".to_string(),
+                action: MenuAction::Custom("difficulty_normal".to_string()),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("hard", MenuItemType::Button {
-            text: "Hard".to_string(),
-            action: MenuAction::Custom("difficulty_hard".to_string()),
-        }));
+        menu.add_item(MenuItem::new(
+            "hard",
+            MenuItemType::Button {
+                text: "Hard".to_string(),
+                action: MenuAction::Custom("difficulty_hard".to_string()),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("back", MenuItemType::Button {
-            text: "Back".to_string(),
-            action: MenuAction::Back,
-        }));
+        menu.add_item(MenuItem::new(
+            "back",
+            MenuItemType::Button {
+                text: "Back".to_string(),
+                action: MenuAction::Back,
+            },
+        ));
 
         menu
     }
@@ -448,31 +495,43 @@ impl MenuSystem {
 
         let mut menu = Self::new(config);
 
-        menu.add_item(MenuItem::new("music", MenuItemType::Toggle {
-            text: "Music".to_string(),
-            value: true,
-            action: MenuAction::ToggleSetting("music_enabled".to_string()),
-        }));
+        menu.add_item(MenuItem::new(
+            "music",
+            MenuItemType::Toggle {
+                text: "Music".to_string(),
+                value: true,
+                action: MenuAction::ToggleSetting("music_enabled".to_string()),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("sound", MenuItemType::Toggle {
-            text: "Sound Effects".to_string(),
-            value: true,
-            action: MenuAction::ToggleSetting("sound_enabled".to_string()),
-        }));
+        menu.add_item(MenuItem::new(
+            "sound",
+            MenuItemType::Toggle {
+                text: "Sound Effects".to_string(),
+                value: true,
+                action: MenuAction::ToggleSetting("sound_enabled".to_string()),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("volume", MenuItemType::Slider {
-            text: "Master Volume".to_string(),
-            value: 0.8,
-            min: 0.0,
-            max: 1.0,
-            step: 0.1,
-            action: MenuAction::SetSetting("master_volume".to_string(), 0.8),
-        }));
+        menu.add_item(MenuItem::new(
+            "volume",
+            MenuItemType::Slider {
+                text: "Master Volume".to_string(),
+                value: 0.8,
+                min: 0.0,
+                max: 1.0,
+                step: 0.1,
+                action: MenuAction::SetSetting("master_volume".to_string(), 0.8),
+            },
+        ));
 
-        menu.add_item(MenuItem::new("back", MenuItemType::Button {
-            text: "Back".to_string(),
-            action: MenuAction::Back,
-        }));
+        menu.add_item(MenuItem::new(
+            "back",
+            MenuItemType::Button {
+                text: "Back".to_string(),
+                action: MenuAction::Back,
+            },
+        ));
 
         menu
     }
@@ -489,44 +548,73 @@ pub mod menu_items {
     use super::*;
 
     pub fn button(id: &str, text: &str, action: MenuAction) -> MenuItem {
-        MenuItem::new(id, MenuItemType::Button {
-            text: text.to_string(),
-            action,
-        })
+        MenuItem::new(
+            id,
+            MenuItemType::Button {
+                text: text.to_string(),
+                action,
+            },
+        )
     }
 
     pub fn toggle(id: &str, text: &str, value: bool, action: MenuAction) -> MenuItem {
-        MenuItem::new(id, MenuItemType::Toggle {
-            text: text.to_string(),
-            value,
-            action,
-        })
+        MenuItem::new(
+            id,
+            MenuItemType::Toggle {
+                text: text.to_string(),
+                value,
+                action,
+            },
+        )
     }
 
-    pub fn slider(id: &str, text: &str, value: f32, min: f32, max: f32, step: f32, action: MenuAction) -> MenuItem {
-        MenuItem::new(id, MenuItemType::Slider {
-            text: text.to_string(),
-            value,
-            min,
-            max,
-            step,
-            action,
-        })
+    pub fn slider(
+        id: &str,
+        text: &str,
+        value: f32,
+        min: f32,
+        max: f32,
+        step: f32,
+        action: MenuAction,
+    ) -> MenuItem {
+        MenuItem::new(
+            id,
+            MenuItemType::Slider {
+                text: text.to_string(),
+                value,
+                min,
+                max,
+                step,
+                action,
+            },
+        )
     }
 
-    pub fn selector(id: &str, text: &str, options: Vec<String>, selected: usize, action: MenuAction) -> MenuItem {
-        MenuItem::new(id, MenuItemType::Selector {
-            text: text.to_string(),
-            options,
-            selected,
-            action,
-        })
+    pub fn selector(
+        id: &str,
+        text: &str,
+        options: Vec<String>,
+        selected: usize,
+        action: MenuAction,
+    ) -> MenuItem {
+        MenuItem::new(
+            id,
+            MenuItemType::Selector {
+                text: text.to_string(),
+                options,
+                selected,
+                action,
+            },
+        )
     }
 
     pub fn label(id: &str, text: &str) -> MenuItem {
-        MenuItem::new(id, MenuItemType::Label {
-            text: text.to_string(),
-        })
+        MenuItem::new(
+            id,
+            MenuItemType::Label {
+                text: text.to_string(),
+            },
+        )
     }
 
     pub fn spacer(id: &str, height: f32) -> MenuItem {

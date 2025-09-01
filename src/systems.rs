@@ -2,8 +2,8 @@
 //!
 //! This module contains all the core systems that operate on components.
 
-use specs::{System, ReadStorage, WriteStorage, Read, Entities, Join};
-use crate::{Time, Position, Velocity, Acceleration, MarkedForRemoval, Health};
+use crate::{Acceleration, Health, MarkedForRemoval, Position, Time, Velocity};
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
 /// Physics system for movement and physics simulation
 pub struct PhysicsSystem;
@@ -35,10 +35,7 @@ impl<'a> System<'a> for PhysicsSystem {
 pub struct CleanupSystem;
 
 impl<'a> System<'a> for CleanupSystem {
-    type SystemData = (
-        Entities<'a>,
-        ReadStorage<'a, MarkedForRemoval>,
-    );
+    type SystemData = (Entities<'a>, ReadStorage<'a, MarkedForRemoval>);
 
     fn run(&mut self, (entities, marked): Self::SystemData) {
         for (entity, _) in (&entities, &marked).join() {
@@ -77,11 +74,15 @@ impl<'a> System<'a> for DebugSystem {
         Read<'a, Time>,
     );
 
-    fn run(&mut self, (positions, velocities, healths, time): Self::SystemData) {
+    fn run(&mut self, (positions, _velocities, _healths, time): Self::SystemData) {
         // Only log every second
         if time.elapsed % 1.0 < time.delta {
             let entity_count = positions.join().count();
-            println!("Frame time: {:.2}ms, Entities: {}", time.delta * 1000.0, entity_count);
+            println!(
+                "Frame time: {:.2}ms, Entities: {}",
+                time.delta * 1000.0,
+                entity_count
+            );
         }
     }
 }
@@ -96,7 +97,7 @@ impl<'a> System<'a> for AISystem {
         Read<'a, Time>,
     );
 
-    fn run(&mut self, (positions, mut velocities, time): Self::SystemData) {
+    fn run(&mut self, (positions, mut velocities, _time): Self::SystemData) {
         // Simple AI: move towards origin
         for (position, velocity) in (&positions, &mut velocities).join() {
             let direction = (-position.as_vec2()).normalize();
@@ -123,16 +124,28 @@ impl<'a> System<'a> for InputSystem {
             velocity.y = 0.0;
 
             // Check for arrow keys (simplified)
-            if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::Left) {
+            if input_state
+                .keys_pressed
+                .contains(&winit::event::VirtualKeyCode::Left)
+            {
                 velocity.x = -100.0;
             }
-            if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::Right) {
+            if input_state
+                .keys_pressed
+                .contains(&winit::event::VirtualKeyCode::Right)
+            {
                 velocity.x = 100.0;
             }
-            if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::Up) {
+            if input_state
+                .keys_pressed
+                .contains(&winit::event::VirtualKeyCode::Up)
+            {
                 velocity.y = -100.0;
             }
-            if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::Down) {
+            if input_state
+                .keys_pressed
+                .contains(&winit::event::VirtualKeyCode::Down)
+            {
                 velocity.y = 100.0;
             }
         }
@@ -149,13 +162,15 @@ impl<'a> System<'a> for RenderingSystem {
         Read<'a, Time>,
     );
 
-    fn run(&mut self, (positions, renderables, time): Self::SystemData) {
+    fn run(&mut self, (positions, renderables, _time): Self::SystemData) {
         // Simple rendering simulation
         for (position, renderable) in (&positions, &renderables).join() {
             if renderable.visible {
                 // In a real implementation, this would render the sprite
-                println!("Rendering {} at ({:.1}, {:.1})",
-                    renderable.sprite_id, position.x, position.y);
+                println!(
+                    "Rendering {} at ({:.1}, {:.1})",
+                    renderable.sprite_id, position.x, position.y
+                );
             }
         }
     }

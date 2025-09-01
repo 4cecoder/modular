@@ -2,7 +2,7 @@
 //!
 //! This module provides the core ECS functionality using the Specs crate.
 
-use specs::{World, WorldExt, Builder, Entity, Component};
+use specs::{Builder, Component, Entity, World, WorldExt};
 
 /// Core time resource
 #[derive(Debug, Clone, Default)]

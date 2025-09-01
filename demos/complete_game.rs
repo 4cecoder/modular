@@ -172,26 +172,42 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 fn create_game_entities(world: &mut World) -> GameEntities {
     // Create player paddle (left side)
-    let player_paddle = world.create_entity_with_components()
-        .with(Position::new(50.0, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    let player_paddle = world
+        .create_entity_with_components()
+        .with(Position::new(
+            50.0,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("player_paddle".to_string()))
-        .with(Paddle { player_controlled: true })
+        .with(Paddle {
+            player_controlled: true,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create AI paddle (right side)
-    let ai_paddle = world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    let ai_paddle = world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("ai_paddle".to_string()))
-        .with(Paddle { player_controlled: false })
+        .with(Paddle {
+            player_controlled: false,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create ball (center)
-    let ball = world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0, WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0))
+    let ball = world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0,
+            WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0,
+        ))
         .with(Velocity::new(BALL_SPEED, BALL_SPEED * 0.5))
         .with(Renderable::new("ball".to_string()))
         .with(Ball)
@@ -199,7 +215,8 @@ fn create_game_entities(world: &mut World) -> GameEntities {
         .build();
 
     // Create score entity
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Score::default())
         .build();
 
@@ -245,7 +262,11 @@ impl game_state::GameState for GameplayState {
         reset_ball(&mut self.world);
     }
 
-    fn update(&mut self, context: &mut game_state::StateContext, delta_time: f32) -> game_state::StateTransition {
+    fn update(
+        &mut self,
+        context: &mut game_state::StateContext,
+        delta_time: f32,
+    ) -> game_state::StateTransition {
         self.game_time += delta_time;
 
         // Update time resource
@@ -270,7 +291,11 @@ impl game_state::GameState for GameplayState {
         game_state::StateTransition::None
     }
 
-    fn handle_input(&mut self, _context: &mut game_state::StateContext, input: &input_window::WindowInputState) -> Option<game_state::StateTransition> {
+    fn handle_input(
+        &mut self,
+        _context: &mut game_state::StateContext,
+        input: &input_window::WindowInputState,
+    ) -> Option<game_state::StateTransition> {
         use minifb::Key;
 
         if input.is_key_just_pressed(Key::Escape) {
@@ -282,8 +307,10 @@ impl game_state::GameState for GameplayState {
 
     fn render(&mut self, context: &mut game_state::StateContext) {
         // In a real implementation, this would render the game using the 2D renderer
-        println!("🎮 Gameplay - Score: {} | AI: {} | Time: {:.1}s",
-                self.score.0, self.score.1, self.game_time);
+        println!(
+            "🎮 Gameplay - Score: {} | AI: {} | Time: {:.1}s",
+            self.score.0, self.score.1, self.game_time
+        );
     }
 
     fn id(&self) -> game_state::StateId {
@@ -305,7 +332,7 @@ fn reset_ball(world: &mut World) {
 }
 
 // Game systems (reuse from window pong)
-use specs::{System, ReadStorage, WriteStorage, Read, Write, Entities, Join};
+use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 pub struct PongInputSystem;
 impl<'a> System<'a> for PongInputSystem {
@@ -336,11 +363,15 @@ impl<'a> System<'a> for PongAISystem {
     );
 
     fn run(&mut self, (positions, mut velocities, paddles, balls, time): Self::SystemData) {
-        let ball_pos = balls.join()
+        let ball_pos = balls
+            .join()
             .next()
             .and_then(|_| positions.join().next())
             .map(|pos| pos.as_vec2())
-            .unwrap_or(Vec2::new(WINDOW_WIDTH as f32 / 2.0, WINDOW_HEIGHT as f32 / 2.0));
+            .unwrap_or(Vec2::new(
+                WINDOW_WIDTH as f32 / 2.0,
+                WINDOW_HEIGHT as f32 / 2.0,
+            ));
 
         for (position, velocity, paddle) in (&positions, &mut velocities, &paddles).join() {
             if !paddle.player_controlled {
@@ -371,8 +402,12 @@ impl<'a> System<'a> for PongCollisionSystem {
         Write<'a, Score>,
     );
 
-    fn run(&mut self, (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData) {
-        for (ball_entity, ball_pos, _) in (&entities, &positions, &balls).join() {
+    fn run(
+        &mut self,
+        (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData,
+    ) {
+        for (ball_entity, _) in (&entities, &balls).join() {
+            let ball_pos = *positions.get(ball_entity).unwrap();
             // Ball collision with top/bottom walls
             if ball_pos.y <= 0.0 || ball_pos.y >= WINDOW_HEIGHT as f32 - BALL_SIZE {
                 if let Some(vel) = velocities.get_mut(ball_entity) {
@@ -416,13 +451,17 @@ impl<'a> System<'a> for PongCollisionSystem {
 }
 
 fn check_paddle_ball_collision(ball_pos: &Position, paddle_pos: &Position) -> bool {
-    ball_pos.x < paddle_pos.x + PADDLE_WIDTH &&
-    ball_pos.x + BALL_SIZE > paddle_pos.x &&
-    ball_pos.y < paddle_pos.y + PADDLE_HEIGHT &&
-    ball_pos.y + BALL_SIZE > paddle_pos.y
+    ball_pos.x < paddle_pos.x + PADDLE_WIDTH
+        && ball_pos.x + BALL_SIZE > paddle_pos.x
+        && ball_pos.y < paddle_pos.y + PADDLE_HEIGHT
+        && ball_pos.y + BALL_SIZE > paddle_pos.y
 }
 
-fn reset_ball_positions(positions: &mut WriteStorage<Position>, velocities: &mut WriteStorage<Velocity>, balls: &ReadStorage<Ball>) {
+fn reset_ball_positions(
+    positions: &mut WriteStorage<Position>,
+    velocities: &mut WriteStorage<Velocity>,
+    balls: &ReadStorage<Ball>,
+) {
     for (pos, vel, _) in (positions, velocities, balls).join() {
         pos.x = WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0;
         pos.y = WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0;

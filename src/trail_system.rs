@@ -132,15 +132,16 @@ impl Trail {
         }
 
         // Update existing segments
-        self.segments.retain_mut(|segment| segment.update(delta_time));
+        self.segments
+            .retain_mut(|segment| segment.update(delta_time));
 
         // Check if we should create a new segment
         self.time_since_last_segment += delta_time;
         let distance_moved = (position - self.last_position).magnitude();
 
-        if self.time_since_last_segment >= self.config.segment_interval &&
-           distance_moved >= self.config.min_distance {
-
+        if self.time_since_last_segment >= self.config.segment_interval
+            && distance_moved >= self.config.min_distance
+        {
             self.add_segment(position, velocity);
             self.time_since_last_segment = 0.0;
             self.last_position = position;
@@ -251,7 +252,7 @@ impl TrailSystem {
     }
 
     /// Update all trails
-    pub fn update_all(&mut self, delta_time: f32) {
+    pub fn update_all(&mut self, _delta_time: f32) {
         // Note: In practice, you'd need to provide position/velocity for each trail
         // This is a simplified version
     }
@@ -280,7 +281,10 @@ impl TrailSystem {
 
     /// Get total number of segments across all trails
     pub fn total_segments(&self) -> usize {
-        self.trails.values().map(|trail| trail.segment_count()).sum()
+        self.trails
+            .values()
+            .map(|trail| trail.segment_count())
+            .sum()
     }
 }
 

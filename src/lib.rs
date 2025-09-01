@@ -11,38 +11,38 @@
 //! - Plugin system
 //! - Event system
 
-pub mod ecs;
-pub mod components;
-pub mod systems;
-pub mod physics;
-pub mod rendering;
-pub mod input;
-pub mod input_window;
 pub mod ai;
 pub mod audio;
-pub mod ui;
-pub mod resources;
-pub mod plugins;
-pub mod events;
-pub mod game_loop;
-pub mod window;
-pub mod renderer_2d;
-pub mod font;
-pub mod game_state;
+pub mod components;
 pub mod difficulty;
-pub mod particles;
-pub mod menu;
-pub mod visual_effects;
+pub mod ecs;
 pub mod enhanced_ai;
+pub mod events;
+pub mod font;
+pub mod game_loop;
+pub mod game_state;
+pub mod input;
+pub mod input_window;
+pub mod menu;
+pub mod particles;
+pub mod physics;
+pub mod plugins;
+pub mod renderer_2d;
+pub mod rendering;
+pub mod resources;
 pub mod scoring;
+pub mod systems;
 pub mod trail_system;
+pub mod ui;
+pub mod visual_effects;
+pub mod window;
 
-pub use ecs::*;
 pub use components::*;
+pub use ecs::*;
 pub use systems::*;
 
 // Re-export commonly used types
-pub use specs::{World, WorldExt, Entity, Join};
+pub use specs::{Entity, Join, World, WorldExt};
 
 // Type aliases for convenience
 pub type Vec2 = nalgebra::Vector2<f32>;

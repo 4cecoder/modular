@@ -99,7 +99,7 @@ impl ParticleSystem {
                 particle.x as i32,
                 particle.y as i32,
                 size as i32,
-                faded_color
+                faded_color,
             );
         }
     }
@@ -198,9 +198,9 @@ impl ImprovedPongGame {
         self.world.write_resource::<Time>().elapsed = self.game_time;
 
         // Update input state resource
-        *self.world.write_resource::<crate::input_window::WindowInputState>() = input.clone();
-
-
+        *self
+            .world
+            .write_resource::<crate::input_window::WindowInputState>() = input.clone();
 
         // Update particle system
         self.particle_system.update(delta_time);
@@ -231,19 +231,26 @@ impl ImprovedPongGame {
                 }
 
                 // Direct selection keys (immediate start)
-                if input.is_key_just_pressed(minifb::Key::Key1) || input.is_key_just_pressed(minifb::Key::NumPad1) {
+                if input.is_key_just_pressed(minifb::Key::Key1)
+                    || input.is_key_just_pressed(minifb::Key::NumPad1)
+                {
                     self.difficulty = Difficulty::Easy;
                     self.start_game();
-                } else if input.is_key_just_pressed(minifb::Key::Key2) || input.is_key_just_pressed(minifb::Key::NumPad2) {
+                } else if input.is_key_just_pressed(minifb::Key::Key2)
+                    || input.is_key_just_pressed(minifb::Key::NumPad2)
+                {
                     self.difficulty = Difficulty::Normal;
                     self.start_game();
-                } else if input.is_key_just_pressed(minifb::Key::Key3) || input.is_key_just_pressed(minifb::Key::NumPad3) {
+                } else if input.is_key_just_pressed(minifb::Key::Key3)
+                    || input.is_key_just_pressed(minifb::Key::NumPad3)
+                {
                     self.difficulty = Difficulty::Hard;
                     self.start_game();
                 }
-
                 // Confirmation keys (start with current selection)
-                else if input.is_key_just_pressed(minifb::Key::Enter) || input.is_key_just_pressed(minifb::Key::Space) {
+                else if input.is_key_just_pressed(minifb::Key::Enter)
+                    || input.is_key_just_pressed(minifb::Key::Space)
+                {
                     self.start_game();
                 } else if input.is_key_just_pressed(minifb::Key::Escape) {
                     self.game_state = GameState::Menu;
@@ -260,9 +267,13 @@ impl ImprovedPongGame {
 
                 // Check for game end
                 if self.score.0 >= MAX_SCORE {
-                    self.game_state = GameState::GameOver { winner: "Player".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "Player".to_string(),
+                    };
                 } else if self.score.1 >= MAX_SCORE {
-                    self.game_state = GameState::GameOver { winner: "AI".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "AI".to_string(),
+                    };
                 }
 
                 // Handle pause
@@ -323,7 +334,9 @@ impl ImprovedPongGame {
 
     fn update_ball_trail(&mut self, delta_time: f32) {
         // Add current ball position to trail
-        let ball_pos = self.world.read_storage::<Position>()
+        let ball_pos = self
+            .world
+            .read_storage::<Position>()
             .join()
             .find(|_| true) // Get first ball
             .map(|pos| (pos.x, pos.y));
@@ -383,36 +396,120 @@ impl ImprovedPongGame {
 
     fn render_menu(&self, renderer: &mut renderer_2d::Renderer2D) {
         // Title
-        renderer.draw_text_centered("IMPROVED PONG", WINDOW_WIDTH / 2, 150, renderer_2d::Color::WHITE, 3);
+        renderer.draw_text_centered(
+            "IMPROVED PONG",
+            WINDOW_WIDTH / 2,
+            150,
+            renderer_2d::Color::WHITE,
+            3,
+        );
 
         // Subtitle
-        renderer.draw_text_centered("Enhanced with Modular Game Engine", WINDOW_WIDTH / 2, 200, renderer_2d::Color::rgb(150, 150, 200), 1);
+        renderer.draw_text_centered(
+            "Enhanced with Modular Game Engine",
+            WINDOW_WIDTH / 2,
+            200,
+            renderer_2d::Color::rgb(150, 150, 200),
+            1,
+        );
 
         // Instructions
-        renderer.draw_text_centered("Press SPACE to Start", WINDOW_WIDTH / 2, 300, renderer_2d::Color::GREEN, 2);
-        renderer.draw_text_centered("W/S: Move Paddle", WINDOW_WIDTH / 2, 350, renderer_2d::Color::WHITE, 1);
-        renderer.draw_text_centered("ESC: Pause", WINDOW_WIDTH / 2, 380, renderer_2d::Color::WHITE, 1);
-        renderer.draw_text_centered("Q: Quit to Menu", WINDOW_WIDTH / 2, 410, renderer_2d::Color::WHITE, 1);
+        renderer.draw_text_centered(
+            "Press SPACE to Start",
+            WINDOW_WIDTH / 2,
+            300,
+            renderer_2d::Color::GREEN,
+            2,
+        );
+        renderer.draw_text_centered(
+            "W/S: Move Paddle",
+            WINDOW_WIDTH / 2,
+            350,
+            renderer_2d::Color::WHITE,
+            1,
+        );
+        renderer.draw_text_centered(
+            "ESC: Pause",
+            WINDOW_WIDTH / 2,
+            380,
+            renderer_2d::Color::WHITE,
+            1,
+        );
+        renderer.draw_text_centered(
+            "Q: Quit to Menu",
+            WINDOW_WIDTH / 2,
+            410,
+            renderer_2d::Color::WHITE,
+            1,
+        );
 
         // Version info
-        renderer.draw_text_centered("v2.0 - Enhanced Edition", WINDOW_WIDTH / 2, 500, renderer_2d::Color::rgb(100, 100, 100), 1);
+        renderer.draw_text_centered(
+            "v2.0 - Enhanced Edition",
+            WINDOW_WIDTH / 2,
+            500,
+            renderer_2d::Color::rgb(100, 100, 100),
+            1,
+        );
     }
 
     fn render_difficulty_select(&self, renderer: &mut renderer_2d::Renderer2D) {
-        renderer.draw_text_centered("SELECT DIFFICULTY", WINDOW_WIDTH / 2, 150, renderer_2d::Color::WHITE, 2);
+        renderer.draw_text_centered(
+            "SELECT DIFFICULTY",
+            WINDOW_WIDTH / 2,
+            150,
+            renderer_2d::Color::WHITE,
+            2,
+        );
 
-        let easy_color = if self.difficulty == Difficulty::Easy { renderer_2d::Color::GREEN } else { renderer_2d::Color::WHITE };
-        let normal_color = if self.difficulty == Difficulty::Normal { renderer_2d::Color::GREEN } else { renderer_2d::Color::WHITE };
-        let hard_color = if self.difficulty == Difficulty::Hard { renderer_2d::Color::GREEN } else { renderer_2d::Color::WHITE };
+        let easy_color = if self.difficulty == Difficulty::Easy {
+            renderer_2d::Color::GREEN
+        } else {
+            renderer_2d::Color::WHITE
+        };
+        let normal_color = if self.difficulty == Difficulty::Normal {
+            renderer_2d::Color::GREEN
+        } else {
+            renderer_2d::Color::WHITE
+        };
+        let hard_color = if self.difficulty == Difficulty::Hard {
+            renderer_2d::Color::GREEN
+        } else {
+            renderer_2d::Color::WHITE
+        };
 
         renderer.draw_text_centered("1. EASY", WINDOW_WIDTH / 2, 250, easy_color, 2);
         renderer.draw_text_centered("2. NORMAL", WINDOW_WIDTH / 2, 300, normal_color, 2);
         renderer.draw_text_centered("3. HARD", WINDOW_WIDTH / 2, 350, hard_color, 2);
 
-        renderer.draw_text_centered("Use UP/DOWN arrows to navigate", WINDOW_WIDTH / 2, 420, renderer_2d::Color::rgb(200, 200, 200), 1);
-        renderer.draw_text_centered("Press ENTER or SPACE to start", WINDOW_WIDTH / 2, 450, renderer_2d::Color::rgb(150, 150, 150), 1);
-        renderer.draw_text_centered("Or press 1, 2, 3 for quick select", WINDOW_WIDTH / 2, 480, renderer_2d::Color::rgb(150, 150, 150), 1);
-        renderer.draw_text_centered("ESC to go back", WINDOW_WIDTH / 2, 510, renderer_2d::Color::rgb(150, 150, 150), 1);
+        renderer.draw_text_centered(
+            "Use UP/DOWN arrows to navigate",
+            WINDOW_WIDTH / 2,
+            420,
+            renderer_2d::Color::rgb(200, 200, 200),
+            1,
+        );
+        renderer.draw_text_centered(
+            "Press ENTER or SPACE to start",
+            WINDOW_WIDTH / 2,
+            450,
+            renderer_2d::Color::rgb(150, 150, 150),
+            1,
+        );
+        renderer.draw_text_centered(
+            "Or press 1, 2, 3 for quick select",
+            WINDOW_WIDTH / 2,
+            480,
+            renderer_2d::Color::rgb(150, 150, 150),
+            1,
+        );
+        renderer.draw_text_centered(
+            "ESC to go back",
+            WINDOW_WIDTH / 2,
+            510,
+            renderer_2d::Color::rgb(150, 150, 150),
+            1,
+        );
     }
 
     fn render_gameplay(&self, renderer: &mut renderer_2d::Renderer2D) {
@@ -422,9 +519,14 @@ impl ImprovedPongGame {
                 (255.0 * alpha) as u8,
                 (255.0 * alpha) as u8,
                 (100.0 * alpha) as u8,
-                (alpha * 255.0) as u8
+                (alpha * 255.0) as u8,
             );
-            renderer.draw_circle_filled(*x as i32, *y as i32, (BALL_SIZE * alpha * 0.5) as i32, trail_color);
+            renderer.draw_circle_filled(
+                *x as i32,
+                *y as i32,
+                (BALL_SIZE * alpha * 0.5) as i32,
+                trail_color,
+            );
         }
 
         // Draw game objects
@@ -443,16 +545,20 @@ impl ImprovedPongGame {
 
             // Glow effect
             renderer.draw_rect(
-                pos.x as i32 - 3, pos.y as i32 - 3,
-                (PADDLE_WIDTH + 6.0) as i32, (PADDLE_HEIGHT + 6.0) as i32,
-                renderer_2d::Color::rgba(255, 255, 255, 50)
+                pos.x as i32 - 3,
+                pos.y as i32 - 3,
+                (PADDLE_WIDTH + 6.0) as i32,
+                (PADDLE_HEIGHT + 6.0) as i32,
+                renderer_2d::Color::rgba(255, 255, 255, 50),
             );
 
             // Main paddle
             renderer.draw_rect(
-                pos.x as i32, pos.y as i32,
-                PADDLE_WIDTH as i32, PADDLE_HEIGHT as i32,
-                base_color
+                pos.x as i32,
+                pos.y as i32,
+                PADDLE_WIDTH as i32,
+                PADDLE_HEIGHT as i32,
+                base_color,
             );
         }
 
@@ -460,16 +566,18 @@ impl ImprovedPongGame {
         for (pos, _, _) in (&positions, &renderables, &balls).join() {
             // Glow effect
             renderer.draw_circle_filled(
-                pos.x as i32, pos.y as i32,
+                pos.x as i32,
+                pos.y as i32,
                 (BALL_SIZE * 1.5) as i32,
-                renderer_2d::Color::rgba(255, 255, 100, 100)
+                renderer_2d::Color::rgba(255, 255, 100, 100),
             );
 
             // Main ball
             renderer.draw_circle_filled(
-                pos.x as i32, pos.y as i32,
+                pos.x as i32,
+                pos.y as i32,
                 BALL_SIZE as i32,
-                renderer_2d::Color::WHITE
+                renderer_2d::Color::WHITE,
             );
         }
 
@@ -478,9 +586,11 @@ impl ImprovedPongGame {
         for i in 0..15 {
             let y = i * 40 + line_offset as i32;
             renderer.draw_rect(
-                WINDOW_WIDTH as i32 / 2 - 2, y,
-                4, 20,
-                renderer_2d::Color::rgba(150, 150, 150, 200)
+                WINDOW_WIDTH as i32 / 2 - 2,
+                y,
+                4,
+                20,
+                renderer_2d::Color::rgba(150, 150, 150, 200),
             );
         }
 
@@ -492,18 +602,20 @@ impl ImprovedPongGame {
         // Player score (left side)
         renderer.draw_text(
             &self.score.0.to_string(),
-            100, 50,
+            100,
+            50,
             renderer_2d::Color::rgb(0, 200, 0),
-            3
+            3,
         );
 
         // AI score (right side)
         let ai_score_text = self.score.1.to_string();
         renderer.draw_text(
             &ai_score_text,
-            WINDOW_WIDTH - 150, 50,
+            WINDOW_WIDTH - 150,
+            50,
             renderer_2d::Color::rgb(200, 0, 0),
-            3
+            3,
         );
 
         // Difficulty indicator
@@ -514,39 +626,83 @@ impl ImprovedPongGame {
         };
         renderer.draw_text(
             diff_text,
-            WINDOW_WIDTH / 2 - 50, 30,
+            WINDOW_WIDTH / 2 - 50,
+            30,
             renderer_2d::Color::rgb(150, 150, 200),
-            1
+            1,
         );
     }
 
     fn render_pause_overlay(&self, renderer: &mut renderer_2d::Renderer2D) {
         // Semi-transparent overlay
-        renderer.draw_rect(0, 0, WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32,
-                          renderer_2d::Color::rgba(0, 0, 0, 150));
+        renderer.draw_rect(
+            0,
+            0,
+            WINDOW_WIDTH as i32,
+            WINDOW_HEIGHT as i32,
+            renderer_2d::Color::rgba(0, 0, 0, 150),
+        );
 
-        renderer.draw_text_centered("PAUSED", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50,
-                          renderer_2d::Color::WHITE, 3);
-        renderer.draw_text_centered("Press ESC to Resume", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,
-                          renderer_2d::Color::rgb(200, 200, 200), 1);
-        renderer.draw_text_centered("Press Q to Quit to Menu", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 40,
-                          renderer_2d::Color::rgb(200, 200, 200), 1);
+        renderer.draw_text_centered(
+            "PAUSED",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 - 50,
+            renderer_2d::Color::WHITE,
+            3,
+        );
+        renderer.draw_text_centered(
+            "Press ESC to Resume",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2,
+            renderer_2d::Color::rgb(200, 200, 200),
+            1,
+        );
+        renderer.draw_text_centered(
+            "Press Q to Quit to Menu",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 + 40,
+            renderer_2d::Color::rgb(200, 200, 200),
+            1,
+        );
     }
 
-    fn render_score_effect(&self, renderer: &mut renderer_2d::Renderer2D, points: u32, is_player: bool) {
-        let color = if is_player { renderer_2d::Color::GREEN } else { renderer_2d::Color::RED };
-        let text = if is_player { "PLAYER SCORES!" } else { "AI SCORES!" };
+    fn render_score_effect(
+        &self,
+        renderer: &mut renderer_2d::Renderer2D,
+        points: u32,
+        is_player: bool,
+    ) {
+        let color = if is_player {
+            renderer_2d::Color::GREEN
+        } else {
+            renderer_2d::Color::RED
+        };
+        let text = if is_player {
+            "PLAYER SCORES!"
+        } else {
+            "AI SCORES!"
+        };
 
         renderer.draw_text_centered(text, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, color, 2);
     }
 
     fn render_game_over(&self, renderer: &mut renderer_2d::Renderer2D, winner: &str) {
         // Semi-transparent overlay
-        renderer.draw_rect(0, 0, WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32,
-                          renderer_2d::Color::rgba(0, 0, 0, 200));
+        renderer.draw_rect(
+            0,
+            0,
+            WINDOW_WIDTH as i32,
+            WINDOW_HEIGHT as i32,
+            renderer_2d::Color::rgba(0, 0, 0, 200),
+        );
 
-        renderer.draw_text_centered("GAME OVER", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 100,
-                          renderer_2d::Color::WHITE, 3);
+        renderer.draw_text_centered(
+            "GAME OVER",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 - 100,
+            renderer_2d::Color::WHITE,
+            3,
+        );
 
         let winner_color = if winner == "Player" {
             renderer_2d::Color::GREEN
@@ -555,15 +711,30 @@ impl ImprovedPongGame {
         };
 
         let winner_text = format!("{} Wins!", winner);
-        renderer.draw_text_centered(&winner_text, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 20,
-                          winner_color, 2);
+        renderer.draw_text_centered(
+            &winner_text,
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 - 20,
+            winner_color,
+            2,
+        );
 
         let score_text = format!("Final Score: {} - {}", self.score.0, self.score.1);
-        renderer.draw_text_centered(&score_text, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 40,
-                          renderer_2d::Color::rgb(200, 200, 200), 1);
+        renderer.draw_text_centered(
+            &score_text,
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 + 40,
+            renderer_2d::Color::rgb(200, 200, 200),
+            1,
+        );
 
-        renderer.draw_text_centered("Press SPACE for Main Menu", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 100,
-                          renderer_2d::Color::rgb(150, 150, 200), 1);
+        renderer.draw_text_centered(
+            "Press SPACE for Main Menu",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 + 100,
+            renderer_2d::Color::rgb(150, 150, 200),
+            1,
+        );
     }
 }
 
@@ -603,7 +774,9 @@ fn main() {
     // Main game loop
     while !render_context.should_close() {
         let current_time = std::time::Instant::now();
-        let delta_time = current_time.duration_since(pong_game.last_update).as_secs_f32();
+        let delta_time = current_time
+            .duration_since(pong_game.last_update)
+            .as_secs_f32();
         pong_game.last_update = current_time;
 
         // Update input
@@ -627,7 +800,7 @@ fn main() {
 }
 
 // Game systems (enhanced versions)
-use specs::{System, ReadStorage, WriteStorage, Read, Write, Entities, Join};
+use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 pub struct ImprovedPongInputSystem;
 impl<'a> System<'a> for ImprovedPongInputSystem {
@@ -664,11 +837,15 @@ impl<'a> System<'a> for ImprovedPongAISystem {
     );
 
     fn run(&mut self, (positions, mut velocities, paddles, balls, time, score): Self::SystemData) {
-        let ball_pos = balls.join()
+        let ball_pos = balls
+            .join()
             .next()
             .and_then(|_| positions.join().next())
             .map(|pos| pos.as_vec2())
-            .unwrap_or(Vec2::new(WINDOW_WIDTH as f32 / 2.0, WINDOW_HEIGHT as f32 / 2.0));
+            .unwrap_or(Vec2::new(
+                WINDOW_WIDTH as f32 / 2.0,
+                WINDOW_HEIGHT as f32 / 2.0,
+            ));
 
         for (position, velocity, paddle) in (&positions, &mut velocities, &paddles).join() {
             if !paddle.player_controlled {
@@ -679,9 +856,9 @@ impl<'a> System<'a> for ImprovedPongAISystem {
                 // Adjust AI speed based on score difference
                 let score_diff = score.player_score as i32 - score.ai_score as i32;
                 let ai_multiplier = match score_diff {
-                    -2..=2 => 0.8,  // Normal speed
-                    3..=5 => 1.0,   // Faster when losing
-                    _ => 0.6,       // Slower when winning
+                    -2..=2 => 0.8, // Normal speed
+                    3..=5 => 1.0,  // Faster when losing
+                    _ => 0.6,      // Slower when winning
                 };
 
                 let ai_error = (time.elapsed * 3.0).sin() * 15.0;
@@ -708,13 +885,18 @@ impl<'a> System<'a> for ImprovedPongCollisionSystem {
         Write<'a, Score>,
     );
 
-    fn run(&mut self, (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData,
+    ) {
         // Get collision data first to avoid borrowing conflicts
-        let ball_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &balls).join()
+        let ball_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &balls)
+            .join()
             .map(|(entity, pos, _)| (entity, pos.clone()))
             .collect();
 
-        let paddle_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &paddles).join()
+        let paddle_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &paddles)
+            .join()
             .map(|(entity, pos, _)| (entity, pos.clone()))
             .collect();
 
@@ -770,13 +952,17 @@ impl<'a> System<'a> for ImprovedPongCollisionSystem {
 }
 
 fn check_paddle_ball_collision(ball_pos: &Position, paddle_pos: &Position) -> bool {
-    ball_pos.x < paddle_pos.x + PADDLE_WIDTH &&
-    ball_pos.x + BALL_SIZE > paddle_pos.x &&
-    ball_pos.y < paddle_pos.y + PADDLE_HEIGHT &&
-    ball_pos.y + BALL_SIZE > paddle_pos.y
+    ball_pos.x < paddle_pos.x + PADDLE_WIDTH
+        && ball_pos.x + BALL_SIZE > paddle_pos.x
+        && ball_pos.y < paddle_pos.y + PADDLE_HEIGHT
+        && ball_pos.y + BALL_SIZE > paddle_pos.y
 }
 
-fn reset_ball_positions(positions: &mut WriteStorage<Position>, velocities: &mut WriteStorage<Velocity>, balls: &ReadStorage<Ball>) {
+fn reset_ball_positions(
+    positions: &mut WriteStorage<Position>,
+    velocities: &mut WriteStorage<Velocity>,
+    balls: &ReadStorage<Ball>,
+) {
     for (pos, vel, _) in (positions, velocities, balls).join() {
         pos.x = WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0;
         pos.y = WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0;
@@ -803,34 +989,54 @@ impl<'a> System<'a> for ImprovedPongGameLogicSystem {
 // Helper functions
 fn create_pong_entities(world: &mut World) {
     // Create player paddle (left side)
-    world.create_entity_with_components()
-        .with(Position::new(50.0, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            50.0,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("player_paddle".to_string()))
-        .with(Paddle { player_controlled: true })
+        .with(Paddle {
+            player_controlled: true,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create AI paddle (right side)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("ai_paddle".to_string()))
-        .with(Paddle { player_controlled: false })
+        .with(Paddle {
+            player_controlled: false,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create ball (center) - start moving towards player (left)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0, WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0))
-        .with(Velocity::new(-BALL_SPEED, (rand::random::<f32>() - 0.5) * BALL_SPEED * 0.5))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0,
+            WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0,
+        ))
+        .with(Velocity::new(
+            -BALL_SPEED,
+            (rand::random::<f32>() - 0.5) * BALL_SPEED * 0.5,
+        ))
         .with(Renderable::new("ball".to_string()))
         .with(Ball)
         .with(Collider::new_circle(BALL_SIZE / 2.0))
         .build();
 
     // Create score entity
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Score::default())
         .build();
 }

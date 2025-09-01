@@ -2,8 +2,8 @@
 //!
 //! Graphics rendering with sprites, cameras, and visual effects.
 
-use specs::{Component, VecStorage, DenseVecStorage};
-use crate::{Vec2, Vec3};
+use crate::Vec2;
+use specs::{Component, DenseVecStorage, VecStorage};
 
 /// Sprite component for 2D rendering
 #[derive(Component, Debug, Clone)]

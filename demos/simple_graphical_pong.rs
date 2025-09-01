@@ -4,12 +4,12 @@
 //! Demonstrates the modular engine with basic graphics.
 
 use modular_game_engine::*;
-use winit::{
-    event::{Event, WindowEvent, KeyboardInput, ElementState, VirtualKeyCode},
-    event_loop::{ControlFlow, EventLoop},
-    window::{WindowBuilder, Window},
-};
 use std::time::Instant;
+use winit::{
+    event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::WindowBuilder,
+};
 
 // Game constants
 const WINDOW_WIDTH: u32 = 800;
@@ -88,9 +88,13 @@ impl SimplePongGame {
 
                 // Check for game end
                 if self.score.0 >= 5 {
-                    self.game_state = GameState::GameOver { winner: "Player".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "Player".to_string(),
+                    };
                 } else if self.score.1 >= 5 {
-                    self.game_state = GameState::GameOver { winner: "AI".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "AI".to_string(),
+                    };
                 }
             }
             _ => {}
@@ -176,15 +180,13 @@ fn main() {
         *control_flow = ControlFlow::Poll;
 
         match event {
-            Event::WindowEvent { event, window_id } if window_id == window.id() => {
-                match event {
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput { input, .. } => {
-                        handle_keyboard_input(&mut pong_game, input);
-                    }
-                    _ => {}
+            Event::WindowEvent { event, window_id } if window_id == window.id() => match event {
+                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::KeyboardInput { input, .. } => {
+                    handle_keyboard_input(&mut pong_game, input);
                 }
-            }
+                _ => {}
+            },
             Event::MainEventsCleared => {
                 pong_game.update();
                 window.request_redraw();
@@ -209,13 +211,11 @@ fn handle_keyboard_input(game: &mut SimplePongGame, input: KeyboardInput) {
                     GameState::GameOver { .. } => game.reset_game(),
                 }
             }
-            (VirtualKeyCode::Space, ElementState::Pressed) => {
-                match game.game_state {
-                    GameState::Menu => game.start_game(),
-                    GameState::GameOver { .. } => game.reset_game(),
-                    _ => {}
-                }
-            }
+            (VirtualKeyCode::Space, ElementState::Pressed) => match game.game_state {
+                GameState::Menu => game.start_game(),
+                GameState::GameOver { .. } => game.reset_game(),
+                _ => {}
+            },
             _ => {}
         }
     }
@@ -247,13 +247,19 @@ fn render_game(game: &SimplePongGame) {
 
                     let mut found_object = false;
                     for obj in game.get_game_objects() {
-                        if screen_x >= obj.x && screen_x < obj.x + obj.width &&
-                           screen_y >= obj.y && screen_y < obj.y + obj.height {
-                            if obj.color[1] > 0.5 { // Green (player paddle)
+                        if screen_x >= obj.x
+                            && screen_x < obj.x + obj.width
+                            && screen_y >= obj.y
+                            && screen_y < obj.y + obj.height
+                        {
+                            if obj.color[1] > 0.5 {
+                                // Green (player paddle)
                                 print!("█");
-                            } else if obj.color[0] > 0.5 { // Red (AI paddle)
+                            } else if obj.color[0] > 0.5 {
+                                // Red (AI paddle)
                                 print!("█");
-                            } else { // White (ball)
+                            } else {
+                                // White (ball)
                                 print!("●");
                             }
                             found_object = true;
@@ -275,8 +281,10 @@ fn render_game(game: &SimplePongGame) {
             println!("└────────────────────────────────────────────────────────────────┘");
 
             // Draw score
-            println!("                    Player: {} | AI: {}",
-                    game.score.0, game.score.1);
+            println!(
+                "                    Player: {} | AI: {}",
+                game.score.0, game.score.1
+            );
 
             if let GameState::Paused = game.game_state {
                 println!("                    *** PAUSED ***");
@@ -287,10 +295,15 @@ fn render_game(game: &SimplePongGame) {
             println!("╔══════════════════════════════════════════════════════════════╗");
             println!("║                        GAME OVER                           ║");
             println!("║                                                              ║");
-            println!("║                   {} Wins!                            ║", winner);
+            println!(
+                "║                   {} Wins!                            ║",
+                winner
+            );
             println!("║                                                              ║");
-            println!("║                 Final Score: {} - {}                      ║",
-                    game.score.0, game.score.1);
+            println!(
+                "║                 Final Score: {} - {}                      ║",
+                game.score.0, game.score.1
+            );
             println!("║                                                              ║");
             println!("║                 Press SPACE for Menu                       ║");
             println!("║                 Press ESC to Exit                          ║");
@@ -302,7 +315,7 @@ fn render_game(game: &SimplePongGame) {
 // Game-specific components are defined in the main components.rs file
 
 // Game systems
-use specs::{System, ReadStorage, WriteStorage, Read, Write, Entities, Join};
+use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 // Collision helper types
 #[derive(Clone)]
@@ -328,10 +341,16 @@ impl<'a> System<'a> for PongInputSystem {
         for (velocity, paddle) in (&mut velocities, &paddles).join() {
             if paddle.player_controlled {
                 velocity.y = 0.0;
-                if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::W) {
+                if input_state
+                    .keys_pressed
+                    .contains(&winit::event::VirtualKeyCode::W)
+                {
                     velocity.y = -PADDLE_SPEED;
                 }
-                if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::S) {
+                if input_state
+                    .keys_pressed
+                    .contains(&winit::event::VirtualKeyCode::S)
+                {
                     velocity.y = PADDLE_SPEED;
                 }
             }
@@ -350,11 +369,15 @@ impl<'a> System<'a> for PongAISystem {
     );
 
     fn run(&mut self, (positions, mut velocities, paddles, balls, time): Self::SystemData) {
-        let ball_pos = balls.join()
+        let ball_pos = balls
+            .join()
             .next()
             .and_then(|_| positions.join().next())
             .map(|pos| pos.as_vec2())
-            .unwrap_or(Vec2::new(WINDOW_WIDTH as f32 / 2.0, WINDOW_HEIGHT as f32 / 2.0));
+            .unwrap_or(Vec2::new(
+                WINDOW_WIDTH as f32 / 2.0,
+                WINDOW_HEIGHT as f32 / 2.0,
+            ));
 
         for (position, velocity, paddle) in (&positions, &mut velocities, &paddles).join() {
             if !paddle.player_controlled {
@@ -385,7 +408,10 @@ impl<'a> System<'a> for PongCollisionSystem {
         Write<'a, Score>,
     );
 
-    fn run(&mut self, (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData,
+    ) {
         // First pass: detect collisions and prepare responses
         let mut collision_responses = Vec::new();
         let mut scoring_events = Vec::new();
@@ -399,7 +425,8 @@ impl<'a> System<'a> for PongCollisionSystem {
             // Check paddle collisions
             for (paddle_entity, paddle_pos, _) in (&entities, &positions, &paddles).join() {
                 if check_paddle_ball_collision(ball_pos, paddle_pos) {
-                    collision_responses.push((ball_entity, CollisionType::Paddle(paddle_pos.clone())));
+                    collision_responses
+                        .push((ball_entity, CollisionType::Paddle(paddle_pos.clone())));
                     break; // Only handle first collision
                 }
             }
@@ -458,13 +485,17 @@ impl<'a> System<'a> for PongCollisionSystem {
 }
 
 fn check_paddle_ball_collision(ball_pos: &Position, paddle_pos: &Position) -> bool {
-    ball_pos.x < paddle_pos.x + PADDLE_WIDTH &&
-    ball_pos.x + BALL_SIZE > paddle_pos.x &&
-    ball_pos.y < paddle_pos.y + PADDLE_HEIGHT &&
-    ball_pos.y + BALL_SIZE > paddle_pos.y
+    ball_pos.x < paddle_pos.x + PADDLE_WIDTH
+        && ball_pos.x + BALL_SIZE > paddle_pos.x
+        && ball_pos.y < paddle_pos.y + PADDLE_HEIGHT
+        && ball_pos.y + BALL_SIZE > paddle_pos.y
 }
 
-fn reset_ball_positions(positions: &mut WriteStorage<Position>, velocities: &mut WriteStorage<Velocity>, balls: &ReadStorage<Ball>) {
+fn reset_ball_positions(
+    positions: &mut WriteStorage<Position>,
+    velocities: &mut WriteStorage<Velocity>,
+    balls: &ReadStorage<Ball>,
+) {
     for (pos, vel, _) in (positions, velocities, balls).join() {
         pos.x = WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0;
         pos.y = WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0;
@@ -490,26 +521,42 @@ impl<'a> System<'a> for PongGameLogicSystem {
 // Helper functions
 fn create_pong_entities(world: &mut World) {
     // Create player paddle (left side)
-    world.create_entity_with_components()
-        .with(Position::new(50.0, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            50.0,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("player_paddle".to_string()))
-        .with(Paddle { player_controlled: true })
+        .with(Paddle {
+            player_controlled: true,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create AI paddle (right side)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("ai_paddle".to_string()))
-        .with(Paddle { player_controlled: false })
+        .with(Paddle {
+            player_controlled: false,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create ball (center)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0, WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0,
+            WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0,
+        ))
         .with(Velocity::new(BALL_SPEED, BALL_SPEED * 0.5))
         .with(Renderable::new("ball".to_string()))
         .with(Ball)
@@ -517,7 +564,8 @@ fn create_pong_entities(world: &mut World) {
         .build();
 
     // Create score entity
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Score::default())
         .build();
 }

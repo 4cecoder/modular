@@ -4,14 +4,14 @@
 //! in a modular, reusable way. Each system is completely independent and can be
 //! used in any game.
 
+use difficulty::{DifficultyLevel, DifficultySystem};
+use enhanced_ai::{AIDifficulty, AISystem};
+use menu::{menu_items, MenuAction, MenuSystem};
 use modular_game_engine::*;
-use difficulty::{DifficultySystem, DifficultyLevel, DifficultyValue};
-use particles::{ParticleSystem, ParticleEmitter, ParticleEmitterConfig};
-use menu::{MenuSystem, MenuItem, menu_items, MenuAction};
-use visual_effects::{VisualEffectsSystem, ScreenShake, ColorTransition, PulseEffect};
-use enhanced_ai::{AISystem, PongPaddleAI, AIDifficulty};
-use scoring::{ScoringSystem, ScoreType, WinCondition, presets as scoring_presets};
-use trail_system::{TrailSystem, presets as trail_presets};
+use particles::ParticleSystem;
+use scoring::{presets as scoring_presets, ScoreType, ScoringSystem};
+use trail_system::{presets as trail_presets, TrailSystem};
+use visual_effects::VisualEffectsSystem;
 
 fn main() {
     println!("🎮 Modular Game Engine - Extracted Systems Demo");
@@ -28,8 +28,14 @@ fn main() {
 
     // Set to hard difficulty
     difficulty_system.set_difficulty(DifficultyLevel::Hard);
-    println!("  AI Speed Multiplier: {:.2}", difficulty_system.ai_speed_multiplier());
-    println!("  Ball Speed Multiplier: {:.2}", difficulty_system.ball_speed_multiplier());
+    println!(
+        "  AI Speed Multiplier: {:.2}",
+        difficulty_system.ai_speed_multiplier()
+    );
+    println!(
+        "  Ball Speed Multiplier: {:.2}",
+        difficulty_system.ball_speed_multiplier()
+    );
     println!("  Max Score: {}", difficulty_system.max_score());
 
     // 2. PARTICLE SYSTEM - Visual effects
@@ -38,7 +44,10 @@ fn main() {
 
     // Create explosion effect
     let explosion_id = particle_system.create_explosion(Vec2::new(100.0, 100.0), 1.5);
-    println!("  Created explosion with {} particles", particle_system.total_particle_count());
+    println!(
+        "  Created explosion with {} particles",
+        particle_system.total_particle_count()
+    );
 
     // Create spark effect
     let spark_id = particle_system.create_sparks(Vec2::new(200.0, 200.0), Vec2::new(0.0, -1.0));
@@ -46,7 +55,10 @@ fn main() {
 
     // Update particles
     particle_system.update(0.016); // ~60 FPS
-    println!("  After update: {} particles remaining", particle_system.total_particle_count());
+    println!(
+        "  After update: {} particles remaining",
+        particle_system.total_particle_count()
+    );
 
     // 3. MENU SYSTEM - UI and navigation
     println!("\n3. Menu System:");
@@ -56,14 +68,14 @@ fn main() {
     menu_system.add_item(menu_items::button(
         "custom_game",
         "Custom Game",
-        MenuAction::Custom("start_custom".to_string())
+        MenuAction::Custom("start_custom".to_string()),
     ));
 
     menu_system.add_item(menu_items::toggle(
         "sound",
         "Sound Effects",
         true,
-        MenuAction::ToggleSetting("sound_enabled".to_string())
+        MenuAction::ToggleSetting("sound_enabled".to_string()),
     ));
 
     println!("  Menu has {} items", menu_system.items.len());
@@ -78,15 +90,12 @@ fn main() {
     println!("  Added screen shake effect");
 
     // Add color transition
-    let transition_id = visual_system.add_color_transition(
-        visual_effects::effects::warning_flash()
-    );
+    let transition_id =
+        visual_system.add_color_transition(visual_effects::effects::warning_flash());
     println!("  Added warning flash transition");
 
     // Add UI pulse effect
-    let pulse_id = visual_system.add_pulse(
-        visual_system.create_ui_pulse(1.0)
-    );
+    let pulse_id = visual_system.create_ui_pulse(1.0);
     println!("  Added UI pulse effect");
 
     // 5. ENHANCED AI SYSTEM - Smart AI behaviors
@@ -109,14 +118,16 @@ fn main() {
         Some(enhanced_ai::AITarget::new(
             Vec2::new(350.0, 250.0), // Ball position
             Vec2::new(100.0, 50.0),  // Ball velocity
-            Vec2::new(400.0, 300.0)  // AI position
-        ))
+            Vec2::new(400.0, 300.0), // AI position
+        )),
     );
 
     // Get AI decision
     if let Some(decision) = ai_system.get_decision("pong_paddle") {
-        println!("  AI Decision: Move velocity ({:.1}, {:.1})",
-                decision.desired_velocity.x, decision.desired_velocity.y);
+        println!(
+            "  AI Decision: Move velocity ({:.1}, {:.1})",
+            decision.desired_velocity.x, decision.desired_velocity.y
+        );
     }
 
     // 6. SCORING SYSTEM - Game statistics and achievements
@@ -128,15 +139,21 @@ fn main() {
     scoring_system.add_score("player2", ScoreType::Points, 2);
     scoring_system.add_score("player1", ScoreType::Points, 2);
 
-    println!("  Player 1 score: {}", scoring_system.get_score("player1", &ScoreType::Points));
-    println!("  Player 2 score: {}", scoring_system.get_score("player2", &ScoreType::Points));
+    println!(
+        "  Player 1 score: {}",
+        scoring_system.get_score("player1", &ScoreType::Points)
+    );
+    println!(
+        "  Player 2 score: {}",
+        scoring_system.get_score("player2", &ScoreType::Points)
+    );
 
     // Check win conditions
     match scoring_system.check_win_conditions() {
         scoring::GameResult::Win { winner, reason } => {
             println!("  Winner: {} ({})", winner, reason);
         }
-        _ => println!("  Game ongoing")
+        _ => println!("  Game ongoing"),
     }
 
     // 7. TRAIL SYSTEM - Dynamic visual trails
@@ -152,10 +169,23 @@ fn main() {
     println!("  Created spaceship trail");
 
     // Update trails
-    trail_system.update_trail("ball", 0.016, Vec2::new(100.0, 100.0), Vec2::new(200.0, 0.0));
-    trail_system.update_trail("ball", 0.016, Vec2::new(120.0, 100.0), Vec2::new(200.0, 0.0));
+    trail_system.update_trail(
+        "ball",
+        0.016,
+        Vec2::new(100.0, 100.0),
+        Vec2::new(200.0, 0.0),
+    );
+    trail_system.update_trail(
+        "ball",
+        0.016,
+        Vec2::new(120.0, 100.0),
+        Vec2::new(200.0, 0.0),
+    );
 
-    println!("  Ball trail segments: {}", trail_system.get_trail("ball").unwrap().segment_count());
+    println!(
+        "  Ball trail segments: {}",
+        trail_system.get_trail("ball").unwrap().segment_count()
+    );
 
     // 8. SYSTEM INTEGRATION EXAMPLE
     println!("\n8. System Integration Example:");
@@ -172,9 +202,11 @@ fn main() {
 
     // Configure for a specific game mode
     game_difficulty.set_difficulty(DifficultyLevel::Hard);
-    game_ai.register_pong_ai("player_ai", 350.0, AIDifficulty::from_multiplier(
-        game_difficulty.ai_speed_multiplier()
-    ));
+    game_ai.register_pong_ai(
+        "player_ai",
+        350.0,
+        AIDifficulty::from_multiplier(game_difficulty.ai_speed_multiplier()),
+    );
 
     // Add visual flair
     game_particles.create_explosion(Vec2::new(400.0, 300.0), 2.0);
@@ -183,9 +215,15 @@ fn main() {
 
     println!("  ✓ Difficulty: {:?}", game_difficulty.get_current_level());
     println!("  ✓ AI Agents: {}", game_ai.get_agent_ids().len());
-    println!("  ✓ Particle Effects: {}", game_particles.total_particle_count());
+    println!(
+        "  ✓ Particle Effects: {}",
+        game_particles.total_particle_count()
+    );
     println!("  ✓ Menu Items: {}", game_menu.items.len());
-    println!("  ✓ Visual Effects: {}", game_visuals.active_effects_count());
+    println!(
+        "  ✓ Visual Effects: {}",
+        game_visuals.active_effects_count()
+    );
     println!("  ✓ Scoring Rules: {}", game_scoring.win_conditions.len());
     println!("  ✓ Trail Effects: {}", game_trails.get_trail_ids().len());
 

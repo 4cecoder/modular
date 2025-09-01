@@ -3,11 +3,11 @@
 //! This module provides TTF font loading, glyph caching, and rendering capabilities
 //! for improved text quality in the game engine.
 
+use crate::renderer_2d::Color;
+use rusttype::{point, Font, PositionedGlyph, Scale};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use rusttype::{Font, Scale, point, PositionedGlyph};
-use crate::renderer_2d::Color;
 
 /// Font system for loading and rendering TTF fonts
 pub struct FontSystem {
@@ -27,10 +27,13 @@ impl FontSystem {
     }
 
     /// Load a TTF font from file
-    pub fn load_font<P: AsRef<Path>>(&mut self, name: &str, path: P) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn load_font<P: AsRef<Path>>(
+        &mut self,
+        name: &str,
+        path: P,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         let font_data = fs::read(path)?;
-        let font = Font::try_from_vec(font_data)
-            .ok_or("Failed to parse font data")?;
+        let font = Font::try_from_vec(font_data).ok_or("Failed to parse font data")?;
 
         self.fonts.insert(name.to_string(), font);
 
@@ -43,12 +46,16 @@ impl FontSystem {
     }
 
     /// Load a TTF font from file
-    pub fn load_font_from_file<P: AsRef<Path>>(&mut self, name: &str, path: P) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn load_font_from_file<P: AsRef<Path>>(
+        &mut self,
+        name: &str,
+        path: P,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         self.load_font(name, path)
     }
 
     /// Load a built-in font (fallback)
-    pub fn load_builtin_font(&mut self, name: &str) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn load_builtin_font(&mut self, _name: &str) -> Result<(), Box<dyn std::error::Error>> {
         // For now, we'll skip built-in font loading since we don't have embedded fonts
         // This will cause the system to fall back to bitmap rendering
         Ok(())
@@ -61,18 +68,26 @@ impl FontSystem {
     }
 
     /// Render text to a pixel buffer
-    pub fn render_text(&mut self, text: &str, font_name: Option<&str>, font_size: f32, color: Color) -> Result<TextBitmap, Box<dyn std::error::Error>> {
-        let font = self.get_font(font_name)
-            .ok_or("Font not found")?;
+    pub fn render_text(
+        &mut self,
+        text: &str,
+        font_name: Option<&str>,
+        font_size: f32,
+        color: Color,
+    ) -> Result<TextBitmap, Box<dyn std::error::Error>> {
+        let font = self.get_font(font_name).ok_or("Font not found")?;
 
         let scale = Scale::uniform(font_size);
         let v_metrics = font.v_metrics(scale);
 
         // Layout glyphs
-        let glyphs: Vec<PositionedGlyph> = font.layout(text, scale, point(0.0, v_metrics.ascent)).collect();
+        let glyphs: Vec<PositionedGlyph> = font
+            .layout(text, scale, point(0.0, v_metrics.ascent))
+            .collect();
 
         // Calculate text bounds
-        let width = glyphs.iter()
+        let width = glyphs
+            .iter()
             .rev()
             .map(|g| g.position().x as f32 + g.unpositioned().h_metrics().advance_width)
             .next()
@@ -102,10 +117,10 @@ impl FontSystem {
                         let idx = ((y as usize * width) + x as usize) * 4;
                         let alpha = (v * 255.0) as u8;
 
-                        pixel_data[idx] = color.r();     // R
+                        pixel_data[idx] = color.r(); // R
                         pixel_data[idx + 1] = color.g(); // G
                         pixel_data[idx + 2] = color.b(); // B
-                        pixel_data[idx + 3] = alpha;   // A
+                        pixel_data[idx + 3] = alpha; // A
                     }
                 });
             }
@@ -119,16 +134,23 @@ impl FontSystem {
     }
 
     /// Get text metrics without rendering
-    pub fn get_text_metrics(&self, text: &str, font_name: Option<&str>, font_size: f32) -> Result<TextMetrics, Box<dyn std::error::Error>> {
-        let font = self.get_font(font_name)
-            .ok_or("Font not found")?;
+    pub fn get_text_metrics(
+        &self,
+        text: &str,
+        font_name: Option<&str>,
+        font_size: f32,
+    ) -> Result<TextMetrics, Box<dyn std::error::Error>> {
+        let font = self.get_font(font_name).ok_or("Font not found")?;
 
         let scale = Scale::uniform(font_size);
         let v_metrics = font.v_metrics(scale);
 
-        let glyphs: Vec<PositionedGlyph> = font.layout(text, scale, point(0.0, v_metrics.ascent)).collect();
+        let glyphs: Vec<PositionedGlyph> = font
+            .layout(text, scale, point(0.0, v_metrics.ascent))
+            .collect();
 
-        let width = glyphs.iter()
+        let width = glyphs
+            .iter()
             .rev()
             .map(|g| g.position().x as f32 + g.unpositioned().h_metrics().advance_width)
             .next()

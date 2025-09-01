@@ -20,9 +20,7 @@ pub struct AudioManager {
 
 impl AudioManager {
     pub fn new() -> Self {
-        Self {
-            master_volume: 1.0,
-        }
+        Self { master_volume: 1.0 }
     }
 
     pub fn play_sound(&mut self, _sound_id: &str) {

@@ -6,9 +6,9 @@
 //! - Layered rendering
 //! - Visual effects
 
-use modular_game_engine::*;
 use modular_game_engine::rendering::Camera2D;
-use specs::{World, WorldExt, RunNow};
+use modular_game_engine::*;
+use specs::{RunNow, World, WorldExt};
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -21,7 +21,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .with(PhysicsSystem, "physics", &[])
         .with(AnimationSystem, "animation", &[])
         .with(CameraSystem, "camera", &[])
-        .with(RenderingSystem, "rendering", &["physics", "animation", "camera"])
+        .with(
+            RenderingSystem,
+            "rendering",
+            &["physics", "animation", "camera"],
+        )
         .build();
 
     // Create rendering demo entities
@@ -75,7 +79,8 @@ fn create_rendering_entities(world: &mut World) {
     println!("Creating rendering entities...");
 
     // Create player with animation
-    let player_entity = world.create_entity_with_components()
+    let player_entity = world
+        .create_entity_with_components()
         .with(Position::new(0.0, 0.0))
         .with(Velocity::new(30.0, 20.0))
         .with(Renderable {
@@ -93,11 +98,16 @@ fn create_rendering_entities(world: &mut World) {
             ],
             0.2, // 200ms per frame
         ))
-        .with(Player { id: 1, health: 100.0, max_health: 100.0 })
+        .with(Player {
+            id: 1,
+            health: 100.0,
+            max_health: 100.0,
+        })
         .build();
 
     // Create camera to follow player
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Position::new(0.0, 0.0))
         .with(Camera2D {
             position: Vec2::new(0.0, 0.0),
@@ -117,7 +127,8 @@ fn create_rendering_entities(world: &mut World) {
         let x = (i as f32 - 5.0) * 100.0;
         let y = 0.0;
 
-        world.create_entity_with_components()
+        world
+            .create_entity_with_components()
             .with(Position::new(x, y))
             .with(Renderable {
                 sprite_id: "background_tile".to_string(),
@@ -133,7 +144,8 @@ fn create_rendering_entities(world: &mut World) {
         let x = (i as f32 - 2.0) * 150.0;
         let y = -100.0 + (i as f32) * 30.0;
 
-        world.create_entity_with_components()
+        world
+            .create_entity_with_components()
             .with(Position::new(x, y))
             .with(Renderable {
                 sprite_id: format!("foreground_{}", i),
@@ -149,7 +161,8 @@ fn create_rendering_entities(world: &mut World) {
         let x = 200.0 + (i as f32) * 80.0;
         let y = 50.0 + (i as f32) * 40.0;
 
-        world.create_entity_with_components()
+        world
+            .create_entity_with_components()
             .with(Position::new(x, y))
             .with(Velocity::new(-10.0, 0.0))
             .with(Renderable {
@@ -171,7 +184,8 @@ fn create_rendering_entities(world: &mut World) {
     }
 
     // Create UI elements (layer 10)
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Position::new(-350.0, -250.0))
         .with(Renderable {
             sprite_id: "health_bar_bg".to_string(),
@@ -181,7 +195,8 @@ fn create_rendering_entities(world: &mut World) {
         })
         .build();
 
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Position::new(-350.0, -250.0))
         .with(Renderable {
             sprite_id: "health_bar_fg".to_string(),
@@ -192,7 +207,10 @@ fn create_rendering_entities(world: &mut World) {
         .build();
 
     let entity_count = world.entities().join().count();
-    println!("Created {} rendering entities across {} layers", entity_count, 11);
+    println!(
+        "Created {} rendering entities across {} layers",
+        entity_count, 11
+    );
 }
 
 fn update_camera_follow(world: &mut World) {
@@ -201,7 +219,8 @@ fn update_camera_follow(world: &mut World) {
     let mut cameras = world.write_storage::<Camera2D>();
 
     // Find player position
-    let player_pos = (&players, &positions).join()
+    let player_pos = (&players, &positions)
+        .join()
         .next()
         .map(|(_, pos)| pos.as_vec2())
         .unwrap_or(Vec2::new(0.0, 0.0));
@@ -225,26 +244,27 @@ fn print_rendering_status(world: &World, frame: u64) {
     let renderables = world.read_storage::<Renderable>();
 
     // Get active camera position
-    let camera_pos = cameras.join()
+    let camera_pos = cameras
+        .join()
         .next()
         .map(|cam| format!("({:6.1},{:6.1})", cam.position.x, cam.position.y))
         .unwrap_or("N/A".to_string());
 
     // Count visible entities
-    let visible_count = renderables.join()
-        .filter(|r| r.visible)
-        .count();
+    let visible_count = renderables.join().filter(|r| r.visible).count();
 
     // Count render calls (simplified - one per visible entity)
     let render_calls = visible_count;
 
-    println!("{:6} | {} | {:15} | {:11}",
-             frame, camera_pos, visible_count, render_calls);
+    println!(
+        "{:6} | {} | {:15} | {:11}",
+        frame, camera_pos, visible_count, render_calls
+    );
 }
 
 // Additional systems for the rendering demo
 
-use specs::{System, ReadStorage, WriteStorage, Read, Join};
+use specs::{Join, Read, ReadStorage, System, WriteStorage};
 
 /// Animation system for updating sprite animations
 pub struct AnimationSystem;
@@ -270,10 +290,7 @@ impl<'a> System<'a> for AnimationSystem {
 pub struct CameraSystem;
 
 impl<'a> System<'a> for CameraSystem {
-    type SystemData = (
-        ReadStorage<'a, Camera2D>,
-        WriteStorage<'a, Camera>,
-    );
+    type SystemData = (ReadStorage<'a, Camera2D>, WriteStorage<'a, Camera>);
 
     fn run(&mut self, (camera2ds, mut cameras): Self::SystemData) {
         for (camera2d, camera) in (&camera2ds, &mut cameras).join() {
@@ -297,18 +314,16 @@ impl<'a> System<'a> for RenderingSystem {
 
     fn run(&mut self, (positions, renderables, cameras, time): Self::SystemData) {
         // Get active camera
-        let active_camera = cameras.join()
-            .next()
-            .cloned()
-            .unwrap_or(Camera2D {
-                position: Vec2::new(0.0, 0.0),
-                zoom: 1.0,
-                rotation: 0.0,
-                viewport_size: Vec2::new(800.0, 600.0),
-            });
+        let active_camera = cameras.join().next().cloned().unwrap_or(Camera2D {
+            position: Vec2::new(0.0, 0.0),
+            zoom: 1.0,
+            rotation: 0.0,
+            viewport_size: Vec2::new(800.0, 600.0),
+        });
 
         // Collect and sort renderables by layer
-        let mut render_queue: Vec<_> = (&positions, &renderables).join()
+        let mut render_queue: Vec<_> = (&positions, &renderables)
+            .join()
             .filter(|(_, r)| r.visible)
             .collect();
 
@@ -325,14 +340,19 @@ impl<'a> System<'a> for RenderingSystem {
             let half_width = active_camera.viewport_size.x / 2.0 / active_camera.zoom;
             let half_height = active_camera.viewport_size.y / 2.0 / active_camera.zoom;
 
-            if camera_space_pos.x >= -half_width && camera_space_pos.x <= half_width &&
-               camera_space_pos.y >= -half_height && camera_space_pos.y <= half_height {
-
-                println!("  Layer {}: {} at ({:.1}, {:.1}) [scale: {:.1}]",
+            if camera_space_pos.x >= -half_width
+                && camera_space_pos.x <= half_width
+                && camera_space_pos.y >= -half_height
+                && camera_space_pos.y <= half_height
+            {
+                println!(
+                    "  Layer {}: {} at ({:.1}, {:.1}) [scale: {:.1}]",
                     renderable.layer,
                     renderable.sprite_id,
-                    position.x, position.y,
-                    renderable.scale);
+                    position.x,
+                    position.y,
+                    renderable.scale
+                );
             }
         }
 

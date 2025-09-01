@@ -2,8 +2,8 @@
 //!
 //! User interface with buttons, panels, and text.
 
-use specs::{Component, VecStorage};
 use crate::Vec2;
+use specs::{Component, VecStorage};
 
 /// UI element component
 #[derive(Component, Debug, Clone)]

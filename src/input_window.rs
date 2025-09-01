@@ -112,10 +112,24 @@ impl WindowInputManager {
         // Check all possible keys (this is a simplified approach)
         // In a real implementation, you'd want to check all Key variants
         for key in &[
-            Key::W, Key::A, Key::S, Key::D, Key::Space, Key::Escape, Key::Enter, Key::Q,
-            Key::Up, Key::Down, Key::Left, Key::Right,
-            Key::Key1, Key::Key2, Key::Key3,
-            Key::NumPad1, Key::NumPad2, Key::NumPad3
+            Key::W,
+            Key::A,
+            Key::S,
+            Key::D,
+            Key::Space,
+            Key::Escape,
+            Key::Enter,
+            Key::Q,
+            Key::Up,
+            Key::Down,
+            Key::Left,
+            Key::Right,
+            Key::Key1,
+            Key::Key2,
+            Key::Key3,
+            Key::NumPad1,
+            Key::NumPad2,
+            Key::NumPad3,
         ] {
             if window.is_key_down(*key) {
                 current_keys.insert(*key);
@@ -167,8 +181,7 @@ impl WindowInputManager {
 
     /// Check for quit condition
     pub fn should_quit(&self) -> bool {
-        self.current_state.is_key_pressed(Key::Escape) ||
-        self.current_state.is_key_pressed(Key::Q)
+        self.current_state.is_key_pressed(Key::Escape) || self.current_state.is_key_pressed(Key::Q)
     }
 }
 
@@ -223,7 +236,8 @@ impl WindowInputMapper {
 
     /// Get all active actions
     pub fn get_active_actions(&self) -> Vec<String> {
-        self.action_states.iter()
+        self.action_states
+            .iter()
             .filter(|(_, &active)| active)
             .map(|(action, _)| action.clone())
             .collect()
@@ -255,14 +269,26 @@ impl WindowGameController {
         let mut x: f32 = 0.0;
         let mut y: f32 = 0.0;
 
-        if self.input_mapper.is_action_active("move_left") { x -= 1.0; }
-        if self.input_mapper.is_action_active("move_right") { x += 1.0; }
-        if self.input_mapper.is_action_active("move_up") { y -= 1.0; }
-        if self.input_mapper.is_action_active("move_down") { y += 1.0; }
+        if self.input_mapper.is_action_active("move_left") {
+            x -= 1.0;
+        }
+        if self.input_mapper.is_action_active("move_right") {
+            x += 1.0;
+        }
+        if self.input_mapper.is_action_active("move_up") {
+            y -= 1.0;
+        }
+        if self.input_mapper.is_action_active("move_down") {
+            y += 1.0;
+        }
 
         // Apply deadzone
-        if x.abs() < self.deadzone { x = 0.0; }
-        if y.abs() < self.deadzone { y = 0.0; }
+        if x.abs() < self.deadzone {
+            x = 0.0;
+        }
+        if y.abs() < self.deadzone {
+            y = 0.0;
+        }
 
         (x, y)
     }

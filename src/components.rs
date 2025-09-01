@@ -2,8 +2,8 @@
 //!
 //! This module defines all the core components used in the game.
 
-use specs::{Component, VecStorage, DenseVecStorage};
-use crate::{Vec2, Vec3};
+use crate::Vec2;
+use specs::{Component, DenseVecStorage, VecStorage};
 
 /// Position component for 2D positioning
 #[derive(Component, Debug, Clone, Copy)]

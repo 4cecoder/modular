@@ -4,7 +4,6 @@
 //! trails, sparks, and other dynamic visual feedback. Extracted from the Pong game.
 
 use crate::Vec2;
-use std::collections::VecDeque;
 
 /// Individual particle with physics and visual properties
 #[derive(Debug, Clone)]
@@ -136,7 +135,7 @@ impl Default for ParticleEmitterConfig {
     fn default() -> Self {
         Self {
             position: Vec2::new(0.0, 0.0),
-            direction: Vec2::new(0.0, -1.0), // Up
+            direction: Vec2::new(0.0, -1.0),    // Up
             spread: std::f32::consts::PI / 4.0, // 45 degrees
             rate: 10.0,
             speed: 100.0,
@@ -199,7 +198,9 @@ impl ParticleEmitter {
             self.emission_timer += delta_time;
             let emission_interval = 1.0 / self.config.rate;
 
-            while self.emission_timer >= emission_interval && self.particles.len() < self.config.max_particles {
+            while self.emission_timer >= emission_interval
+                && self.particles.len() < self.config.max_particles
+            {
                 self.emit_particle();
                 self.emission_timer -= emission_interval;
             }
@@ -219,33 +220,35 @@ impl ParticleEmitter {
         let final_angle = base_angle + angle_variation;
 
         // Set velocity
-        let speed = self.config.speed + (rand::random::<f32>() - 0.5) * 2.0 * self.config.speed_variation;
-        particle.velocity = Vec2::new(
-            final_angle.cos() * speed,
-            final_angle.sin() * speed,
-        );
+        let speed =
+            self.config.speed + (rand::random::<f32>() - 0.5) * 2.0 * self.config.speed_variation;
+        particle.velocity = Vec2::new(final_angle.cos() * speed, final_angle.sin() * speed);
 
         // Set acceleration (gravity)
         particle.acceleration = self.config.gravity;
 
         // Set life
-        particle.max_life = self.config.life + (rand::random::<f32>() - 0.5) * 2.0 * self.config.life_variation;
+        particle.max_life =
+            self.config.life + (rand::random::<f32>() - 0.5) * 2.0 * self.config.life_variation;
         particle.life = particle.max_life;
 
         // Set size
-        particle.initial_size = self.config.size + (rand::random::<f32>() - 0.5) * 2.0 * self.config.size_variation;
+        particle.initial_size =
+            self.config.size + (rand::random::<f32>() - 0.5) * 2.0 * self.config.size_variation;
         particle.size = particle.initial_size;
 
         // Set color
         particle.initial_color = self.config.color;
         for i in 0..4 {
-            particle.color[i] = (self.config.color[i] + (rand::random::<f32>() - 0.5) * 2.0 * self.config.color_variation[i])
+            particle.color[i] = (self.config.color[i]
+                + (rand::random::<f32>() - 0.5) * 2.0 * self.config.color_variation[i])
                 .clamp(0.0, 1.0);
         }
         particle.initial_color = particle.color;
 
         // Set rotation
-        particle.rotation_speed = self.config.rotation_speed + (rand::random::<f32>() - 0.5) * 2.0 * self.config.rotation_variation;
+        particle.rotation_speed = self.config.rotation_speed
+            + (rand::random::<f32>() - 0.5) * 2.0 * self.config.rotation_variation;
 
         // Set texture
         particle.texture_index = self.config.texture_index;
@@ -333,16 +336,17 @@ impl ParticleSystem {
         }
 
         // Remove empty emitters
-        self.emitters.retain(|emitter| emitter.config.active || emitter.has_particles());
+        self.emitters
+            .retain(|emitter| emitter.config.active || emitter.has_particles());
     }
 
     /// Create a preset explosion effect
     pub fn create_explosion(&mut self, position: Vec2, intensity: f32) -> usize {
-        let mut config = ParticleEmitterConfig {
+        let config = ParticleEmitterConfig {
             position,
-            direction: Vec2::new(0.0, 0.0), // Radial
+            direction: Vec2::new(0.0, 0.0),     // Radial
             spread: std::f32::consts::PI * 2.0, // Full circle
-            rate: 0.0, // Burst only
+            rate: 0.0,                          // Burst only
             speed: 50.0 * intensity,
             speed_variation: 20.0 * intensity,
             size: 3.0 * intensity,
@@ -367,10 +371,10 @@ impl ParticleSystem {
 
     /// Create a preset trail effect
     pub fn create_trail(&mut self, position: Vec2, velocity: Vec2) -> usize {
-        let mut config = ParticleEmitterConfig {
+        let config = ParticleEmitterConfig {
             position,
             direction: velocity.normalize() * -1.0, // Opposite to movement
-            spread: std::f32::consts::PI / 6.0, // Narrow spread
+            spread: std::f32::consts::PI / 6.0,     // Narrow spread
             rate: 20.0,
             speed: velocity.magnitude() * 0.5,
             speed_variation: 10.0,
@@ -394,7 +398,7 @@ impl ParticleSystem {
 
     /// Create a preset spark effect
     pub fn create_sparks(&mut self, position: Vec2, direction: Vec2) -> usize {
-        let mut config = ParticleEmitterConfig {
+        let config = ParticleEmitterConfig {
             position,
             direction,
             spread: std::f32::consts::PI / 3.0, // 60 degrees
@@ -487,7 +491,7 @@ mod tests {
     fn test_particle_system() {
         let mut system = ParticleSystem::new();
 
-        let emitter_idx = system.create_explosion(Vec2::new(0.0, 0.0), 1.0);
+        let _emitter_idx = system.create_explosion(Vec2::new(0.0, 0.0), 1.0);
         assert_eq!(system.total_particle_count(), 20);
 
         system.update(0.1);

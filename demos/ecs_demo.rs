@@ -4,7 +4,7 @@
 //! It creates entities with different components and runs systems on them.
 
 use modular_game_engine::*;
-use specs::{World, WorldExt, RunNow};
+use specs::{World, WorldExt};
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -64,11 +64,16 @@ fn create_demo_entities(world: &mut World) {
     println!("Creating demo entities...");
 
     // Create player entity
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Position::new(0.0, 0.0))
         .with(Velocity::new(10.0, 5.0))
         .with(Renderable::new("player_sprite".to_string()))
-        .with(Player { id: 1, health: 100.0, max_health: 100.0 })
+        .with(Player {
+            id: 1,
+            health: 100.0,
+            max_health: 100.0,
+        })
         .with(Health::new(100.0))
         .build();
 
@@ -77,7 +82,8 @@ fn create_demo_entities(world: &mut World) {
         let x = (i as f32 - 2.0) * 50.0;
         let y = 100.0 + (i as f32) * 20.0;
 
-        world.create_entity_with_components()
+        world
+            .create_entity_with_components()
             .with(Position::new(x, y))
             .with(Velocity::new(-5.0 + (i as f32), 0.0))
             .with(Renderable::new(format!("enemy_sprite_{}", i)))
@@ -91,7 +97,8 @@ fn create_demo_entities(world: &mut World) {
         let x = (i as f32 - 1.0) * 100.0;
         let y = -50.0;
 
-        world.create_entity_with_components()
+        world
+            .create_entity_with_components()
             .with(Position::new(x, y))
             .with(Renderable::new(format!("static_object_{}", i)))
             .build();
@@ -110,12 +117,15 @@ fn print_status(world: &World, frame: u64) {
     let entity_count = positions.join().count();
     let enemy_count = enemies.join().count();
 
-        // Get player health
-        let player_health = (&players, &healths).join()
-            .next()
-            .map(|(_, health)| format!("{:.0}/{}", health.current, health.maximum))
-            .unwrap_or("No player".to_string());
+    // Get player health
+    let player_health = (&players, &healths)
+        .join()
+        .next()
+        .map(|(_, health)| format!("{:.0}/{}", health.current, health.maximum))
+        .unwrap_or("No player".to_string());
 
-    println!("{:6} | {:8} | {:13} | {:10}",
-             frame, entity_count, player_health, enemy_count);
+    println!(
+        "{:6} | {:8} | {:13} | {:10}",
+        frame, entity_count, player_health, enemy_count
+    );
 }

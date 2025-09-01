@@ -4,15 +4,15 @@
 //! Features proper graphics, menu system, and game states.
 
 use modular_game_engine::*;
-use specs::{VecStorage, DenseVecStorage};
-use specs_derive::{Component, storage};
-use winit::{
-    event::{Event, WindowEvent, KeyboardInput, ElementState, VirtualKeyCode},
-    event_loop::{ControlFlow, EventLoop},
-    window::{WindowBuilder, Window},
-};
-use wgpu::{util::DeviceExt, SurfaceError, StoreOp};
+use specs::Component;
+use specs::{DenseVecStorage, VecStorage};
 use std::time::{Duration, Instant};
+use wgpu::{util::DeviceExt, LoadOp, Operations, StoreOp, SurfaceError};
+use winit::{
+    event::{ElementState, Event, KeyboardInput, VirtualKeyCode, WindowEvent},
+    event_loop::{ControlFlow, EventLoop},
+    window::{Window, WindowBuilder},
+};
 
 // Game constants
 const WINDOW_WIDTH: u32 = 800;
@@ -97,20 +97,20 @@ fn main() {
         *control_flow = ControlFlow::Poll;
 
         match event {
-            Event::WindowEvent { event, window_id } if window_id == window.id() => {
-                match event {
-                    WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
-                    WindowEvent::KeyboardInput { input, .. } => {
-                        handle_keyboard_input(&mut pong_game, input);
-                    }
-                    WindowEvent::Resized(size) => {
-                        render_data.config.width = size.width;
-                        render_data.config.height = size.height;
-                        render_data.surface.configure(&render_data.device, &render_data.config);
-                    }
-                    _ => {}
+            Event::WindowEvent { event, window_id } if window_id == window.id() => match event {
+                WindowEvent::CloseRequested => *control_flow = ControlFlow::Exit,
+                WindowEvent::KeyboardInput { input, .. } => {
+                    handle_keyboard_input(&mut pong_game, input);
                 }
-            }
+                WindowEvent::Resized(size) => {
+                    render_data.config.width = size.width;
+                    render_data.config.height = size.height;
+                    render_data
+                        .surface
+                        .configure(&render_data.device, &render_data.config);
+                }
+                _ => {}
+            },
             Event::MainEventsCleared => {
                 pong_game.update();
                 window.request_redraw();
@@ -120,7 +120,9 @@ fn main() {
                 match render(&render_data, &pong_game) {
                     Ok(_) => {}
                     Err(wgpu::SurfaceError::Lost) => {
-                        render_data.surface.configure(&render_data.device, &render_data.config);
+                        render_data
+                            .surface
+                            .configure(&render_data.device, &render_data.config);
                     }
                     Err(e) => eprintln!("Render error: {:?}", e),
                 }
@@ -182,9 +184,13 @@ impl PongGame {
 
                 // Check for game end
                 if self.score.0 >= 5 {
-                    self.game_state = GameState::GameOver { winner: "Player".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "Player".to_string(),
+                    };
                 } else if self.score.1 >= 5 {
-                    self.game_state = GameState::GameOver { winner: "AI".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "AI".to_string(),
+                    };
                 }
             }
             _ => {}
@@ -223,13 +229,11 @@ fn handle_keyboard_input(game: &mut PongGame, input: KeyboardInput) {
                     GameState::GameOver { .. } => game.reset_game(),
                 }
             }
-            (VirtualKeyCode::Space, ElementState::Pressed) => {
-                match game.game_state {
-                    GameState::Menu => game.start_game(),
-                    GameState::GameOver { .. } => game.reset_game(),
-                    _ => {}
-                }
-            }
+            (VirtualKeyCode::Space, ElementState::Pressed) => match game.game_state {
+                GameState::Menu => game.start_game(),
+                GameState::GameOver { .. } => game.reset_game(),
+                _ => {}
+            },
             _ => {}
         }
     }
@@ -245,25 +249,31 @@ async fn create_render_data(window: &Window) -> RenderData {
 
     let surface = unsafe { instance.create_surface(window).unwrap() };
 
-    let adapter = instance.request_adapter(
-        &wgpu::RequestAdapterOptions {
+    let adapter = instance
+        .request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::default(),
             compatible_surface: Some(&surface),
             force_fallback_adapter: false,
-        },
-    ).await.unwrap();
+        })
+        .await
+        .unwrap();
 
-    let (device, queue) = adapter.request_device(
-        &wgpu::DeviceDescriptor {
-            features: wgpu::Features::empty(),
-            limits: wgpu::Limits::default(),
-            label: None,
-        },
-        None,
-    ).await.unwrap();
+    let (device, queue) = adapter
+        .request_device(
+            &wgpu::DeviceDescriptor {
+                features: wgpu::Features::empty(),
+                limits: wgpu::Limits::default(),
+                label: None,
+            },
+            None,
+        )
+        .await
+        .unwrap();
 
     let surface_caps = surface.get_capabilities(&adapter);
-    let surface_format = surface_caps.formats.iter()
+    let surface_format = surface_caps
+        .formats
+        .iter()
         .copied()
         .find(|f| f.is_srgb())
         .unwrap_or(surface_caps.formats[0]);
@@ -351,8 +361,22 @@ fn update_render_data(render_data: &mut RenderData, game: &PongGame) {
         GameState::Menu => {
             // Draw menu
             draw_text(&mut vertices, "PONG", -0.3, 0.3, 0.1, [1.0, 1.0, 1.0]);
-            draw_text(&mut vertices, "Press SPACE to Start", -0.4, 0.0, 0.05, [0.8, 0.8, 0.8]);
-            draw_text(&mut vertices, "ESC to Pause", -0.3, -0.1, 0.04, [0.6, 0.6, 0.6]);
+            draw_text(
+                &mut vertices,
+                "Press SPACE to Start",
+                -0.4,
+                0.0,
+                0.05,
+                [0.8, 0.8, 0.8],
+            );
+            draw_text(
+                &mut vertices,
+                "ESC to Pause",
+                -0.3,
+                -0.1,
+                0.04,
+                [0.6, 0.6, 0.6],
+            );
         }
         GameState::Playing | GameState::Paused => {
             // Draw game objects
@@ -363,13 +387,34 @@ fn update_render_data(render_data: &mut RenderData, game: &PongGame) {
 
             if let GameState::Paused = game.game_state {
                 draw_text(&mut vertices, "PAUSED", -0.2, 0.0, 0.08, [1.0, 1.0, 0.0]);
-                draw_text(&mut vertices, "Press ESC to Resume", -0.4, -0.1, 0.04, [0.8, 0.8, 0.8]);
+                draw_text(
+                    &mut vertices,
+                    "Press ESC to Resume",
+                    -0.4,
+                    -0.1,
+                    0.04,
+                    [0.8, 0.8, 0.8],
+                );
             }
         }
         GameState::GameOver { ref winner } => {
             draw_text(&mut vertices, "GAME OVER", -0.3, 0.2, 0.08, [1.0, 0.0, 0.0]);
-            draw_text(&mut vertices, &format!("{} Wins!", winner), -0.3, 0.0, 0.06, [1.0, 1.0, 1.0]);
-            draw_text(&mut vertices, "Press SPACE to Menu", -0.4, -0.2, 0.04, [0.8, 0.8, 0.8]);
+            draw_text(
+                &mut vertices,
+                &format!("{} Wins!", winner),
+                -0.3,
+                0.0,
+                0.06,
+                [1.0, 1.0, 1.0],
+            );
+            draw_text(
+                &mut vertices,
+                "Press SPACE to Menu",
+                -0.4,
+                -0.2,
+                0.04,
+                [0.8, 0.8, 0.8],
+            );
             draw_score(&mut vertices, game.score.0, game.score.1);
         }
     }
@@ -401,7 +446,14 @@ fn draw_game_objects(vertices: &mut Vec<Vertex>, world: &World) {
 
     // Draw ball
     for (pos, _, _) in (&positions, &renderables, &balls).join() {
-        draw_rectangle(vertices, pos.x, pos.y, BALL_SIZE, BALL_SIZE, [1.0, 1.0, 1.0]);
+        draw_rectangle(
+            vertices,
+            pos.x,
+            pos.y,
+            BALL_SIZE,
+            BALL_SIZE,
+            [1.0, 1.0, 1.0],
+        );
     }
 
     // Draw center line
@@ -411,19 +463,44 @@ fn draw_game_objects(vertices: &mut Vec<Vertex>, world: &World) {
     }
 }
 
-fn draw_rectangle(vertices: &mut Vec<Vertex>, x: f32, y: f32, width: f32, height: f32, color: [f32; 3]) {
+fn draw_rectangle(
+    vertices: &mut Vec<Vertex>,
+    x: f32,
+    y: f32,
+    width: f32,
+    height: f32,
+    color: [f32; 3],
+) {
     let x = (x - WINDOW_WIDTH as f32 / 2.0) / (WINDOW_WIDTH as f32 / 2.0);
     let y = (y - WINDOW_HEIGHT as f32 / 2.0) / (WINDOW_HEIGHT as f32 / 2.0);
     let w = width / (WINDOW_WIDTH as f32 / 2.0);
     let h = height / (WINDOW_HEIGHT as f32 / 2.0);
 
     vertices.extend_from_slice(&[
-        Vertex { position: [x, y], color },
-        Vertex { position: [x + w, y], color },
-        Vertex { position: [x + w, y + h], color },
-        Vertex { position: [x, y], color },
-        Vertex { position: [x + w, y + h], color },
-        Vertex { position: [x, y + h], color },
+        Vertex {
+            position: [x, y],
+            color,
+        },
+        Vertex {
+            position: [x + w, y],
+            color,
+        },
+        Vertex {
+            position: [x + w, y + h],
+            color,
+        },
+        Vertex {
+            position: [x, y],
+            color,
+        },
+        Vertex {
+            position: [x + w, y + h],
+            color,
+        },
+        Vertex {
+            position: [x, y + h],
+            color,
+        },
     ]);
 }
 
@@ -432,7 +509,14 @@ fn draw_text(vertices: &mut Vec<Vertex>, text: &str, x: f32, y: f32, size: f32, 
     let mut current_x = x;
     for ch in text.chars() {
         if ch != ' ' {
-            draw_rectangle(vertices, current_x * WINDOW_WIDTH as f32, y * WINDOW_HEIGHT as f32, size * 20.0, size * 30.0, color);
+            draw_rectangle(
+                vertices,
+                current_x * WINDOW_WIDTH as f32,
+                y * WINDOW_HEIGHT as f32,
+                size * 20.0,
+                size * 30.0,
+                color,
+            );
         }
         current_x += size * 1.2;
     }
@@ -440,19 +524,37 @@ fn draw_text(vertices: &mut Vec<Vertex>, text: &str, x: f32, y: f32, size: f32, 
 
 fn draw_score(vertices: &mut Vec<Vertex>, player_score: u32, ai_score: u32) {
     // Draw player score (left side)
-    draw_text(vertices, &player_score.to_string(), -0.8, 0.8, 0.1, [0.0, 0.8, 0.0]);
+    draw_text(
+        vertices,
+        &player_score.to_string(),
+        -0.8,
+        0.8,
+        0.1,
+        [0.0, 0.8, 0.0],
+    );
 
     // Draw AI score (right side)
-    draw_text(vertices, &ai_score.to_string(), 0.7, 0.8, 0.1, [0.8, 0.0, 0.0]);
+    draw_text(
+        vertices,
+        &ai_score.to_string(),
+        0.7,
+        0.8,
+        0.1,
+        [0.8, 0.0, 0.0],
+    );
 }
 
 fn render(render_data: &RenderData, game: &PongGame) -> Result<(), wgpu::SurfaceError> {
     let output = render_data.surface.get_current_texture()?;
-    let view = output.texture.create_view(&wgpu::TextureViewDescriptor::default());
+    let view = output
+        .texture
+        .create_view(&wgpu::TextureViewDescriptor::default());
 
-    let mut encoder = render_data.device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-        label: Some("Render Encoder"),
-    });
+    let mut encoder = render_data
+        .device
+        .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Render Encoder"),
+        });
 
     {
         let mut render_pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
@@ -489,26 +591,42 @@ fn render(render_data: &RenderData, game: &PongGame) -> Result<(), wgpu::Surface
 // Reuse the existing Pong systems and entities from the console version
 fn create_pong_entities(world: &mut World) {
     // Create player paddle (left side)
-    world.create_entity_with_components()
-        .with(Position::new(50.0, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            50.0,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("player_paddle".to_string()))
-        .with(Paddle { player_controlled: true })
+        .with(Paddle {
+            player_controlled: true,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create AI paddle (right side)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("ai_paddle".to_string()))
-        .with(Paddle { player_controlled: false })
+        .with(Paddle {
+            player_controlled: false,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create ball (center)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0, WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0,
+            WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0,
+        ))
         .with(Velocity::new(BALL_SPEED, BALL_SPEED * 0.5))
         .with(Renderable::new("ball".to_string()))
         .with(Ball)
@@ -516,8 +634,12 @@ fn create_pong_entities(world: &mut World) {
         .build();
 
     // Create score entity
-    world.create_entity_with_components()
-        .with(Score { player_score: 0, ai_score: 0 })
+    world
+        .create_entity_with_components()
+        .with(Score {
+            player_score: 0,
+            ai_score: 0,
+        })
         .build();
 }
 
@@ -553,7 +675,7 @@ pub struct Score {
 }
 
 // Game systems (simplified versions for graphics demo)
-use specs::{System, ReadStorage, WriteStorage, Read, Write, Entities, Join};
+use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 pub struct PongInputSystem;
 impl<'a> System<'a> for PongInputSystem {
@@ -567,10 +689,16 @@ impl<'a> System<'a> for PongInputSystem {
         for (velocity, paddle) in (&mut velocities, &paddles).join() {
             if paddle.player_controlled {
                 velocity.y = 0.0;
-                if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::W) {
+                if input_state
+                    .keys_pressed
+                    .contains(&winit::event::VirtualKeyCode::W)
+                {
                     velocity.y = -PADDLE_SPEED;
                 }
-                if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::S) {
+                if input_state
+                    .keys_pressed
+                    .contains(&winit::event::VirtualKeyCode::S)
+                {
                     velocity.y = PADDLE_SPEED;
                 }
             }
@@ -589,11 +717,15 @@ impl<'a> System<'a> for PongAISystem {
     );
 
     fn run(&mut self, (positions, mut velocities, paddles, balls, time): Self::SystemData) {
-        let ball_pos = balls.join()
+        let ball_pos = balls
+            .join()
             .next()
             .and_then(|_| positions.join().next())
             .map(|pos| pos.as_vec2())
-            .unwrap_or(Vec2::new(WINDOW_WIDTH as f32 / 2.0, WINDOW_HEIGHT as f32 / 2.0));
+            .unwrap_or(Vec2::new(
+                WINDOW_WIDTH as f32 / 2.0,
+                WINDOW_HEIGHT as f32 / 2.0,
+            ));
 
         for (position, velocity, paddle) in (&positions, &mut velocities, &paddles).join() {
             if !paddle.player_controlled {
@@ -624,7 +756,10 @@ impl<'a> System<'a> for PongCollisionSystem {
         Write<'a, Score>,
     );
 
-    fn run(&mut self, (entities, positions, mut velocities, balls, paddles, mut score): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, positions, mut velocities, balls, paddles, mut score): Self::SystemData,
+    ) {
         for (ball_entity, ball_pos, _) in (&entities, &positions, &balls).join() {
             // Ball collision with top/bottom walls
             if ball_pos.y <= 0.0 || ball_pos.y >= WINDOW_HEIGHT as f32 - BALL_SIZE {
@@ -665,13 +800,17 @@ impl<'a> System<'a> for PongCollisionSystem {
 }
 
 fn check_paddle_ball_collision(ball_pos: &Position, paddle_pos: &Position) -> bool {
-    ball_pos.x < paddle_pos.x + PADDLE_WIDTH &&
-    ball_pos.x + BALL_SIZE > paddle_pos.x &&
-    ball_pos.y < paddle_pos.y + PADDLE_HEIGHT &&
-    ball_pos.y + BALL_SIZE > paddle_pos.y
+    ball_pos.x < paddle_pos.x + PADDLE_WIDTH
+        && ball_pos.x + BALL_SIZE > paddle_pos.x
+        && ball_pos.y < paddle_pos.y + PADDLE_HEIGHT
+        && ball_pos.y + BALL_SIZE > paddle_pos.y
 }
 
-fn reset_ball_positions(positions: &mut WriteStorage<Position>, velocities: &mut WriteStorage<Velocity>, balls: &ReadStorage<Ball>) {
+fn reset_ball_positions(
+    positions: &mut WriteStorage<Position>,
+    velocities: &mut WriteStorage<Velocity>,
+    balls: &ReadStorage<Ball>,
+) {
     for (pos, vel, _) in (positions, velocities, balls).join() {
         pos.x = WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0;
         pos.y = WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0;

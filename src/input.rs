@@ -2,8 +2,8 @@
 //!
 //! User input handling with keyboard, mouse, and gamepad support.
 
-use std::collections::HashSet;
 use specs::{Component, DenseVecStorage};
+use std::collections::HashSet;
 
 /// Input action mapping
 #[derive(Component, Debug, Clone)]

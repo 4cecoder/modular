@@ -4,14 +4,14 @@
 //! Demonstrates integration of all extracted systems: difficulty, particles, menu, visual effects,
 //! scoring, and trail systems.
 
+use difficulty::DifficultySystem;
+use menu::MenuSystem;
 use modular_game_engine::*;
-use difficulty::{DifficultySystem};
-use particles::{ParticleSystem};
-use menu::{MenuSystem};
-use visual_effects::{VisualEffectsSystem};
-use scoring::{ScoringSystem, ScoreType, presets as scoring_presets};
-use trail_system::{TrailSystem, presets as trail_presets};
+use particles::ParticleSystem;
+use scoring::{presets as scoring_presets, ScoreType, ScoringSystem};
 use specs::{Component, VecStorage};
+use trail_system::{presets as trail_presets, TrailSystem};
+use visual_effects::VisualEffectsSystem;
 
 // Game constants
 const WINDOW_WIDTH: usize = 800;
@@ -154,9 +154,13 @@ impl BreakoutGame {
         self.clear_level();
 
         // Create paddle
-        let paddle_entity = self.world.create_entity_with_components()
-            .with(Position::new(WINDOW_WIDTH as f32 / 2.0 - PADDLE_WIDTH / 2.0,
-                               WINDOW_HEIGHT as f32 - 60.0))
+        let paddle_entity = self
+            .world
+            .create_entity_with_components()
+            .with(Position::new(
+                WINDOW_WIDTH as f32 / 2.0 - PADDLE_WIDTH / 2.0,
+                WINDOW_HEIGHT as f32 - 60.0,
+            ))
             .with(Velocity::new(0.0, 0.0))
             .with(Renderable::new("paddle".to_string()))
             .with(Paddle)
@@ -165,12 +169,18 @@ impl BreakoutGame {
         self.paddle_entity = Some(paddle_entity);
 
         // Create ball attached to paddle
-        let ball_entity = self.world.create_entity_with_components()
-            .with(Position::new(WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0,
-                               WINDOW_HEIGHT as f32 - 80.0))
+        let ball_entity = self
+            .world
+            .create_entity_with_components()
+            .with(Position::new(
+                WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0,
+                WINDOW_HEIGHT as f32 - 80.0,
+            ))
             .with(Velocity::new(0.0, 0.0))
             .with(Renderable::new("ball".to_string()))
-            .with(Ball { attached_to_paddle: true })
+            .with(Ball {
+                attached_to_paddle: true,
+            })
             .with(Collider::new_circle(BALL_SIZE / 2.0))
             .build();
         self.balls.push(ball_entity);
@@ -200,10 +210,17 @@ impl BreakoutGame {
                 let x = start_x + col as f32 * (BRICK_WIDTH + 5.0);
                 let y = start_y + row as f32 * (BRICK_HEIGHT + 5.0);
 
-                let hits_required = if row < 2 { 1 } else if row < 4 { 2 } else { 3 };
+                let hits_required = if row < 2 {
+                    1
+                } else if row < 4 {
+                    2
+                } else {
+                    3
+                };
                 let points = (BRICK_ROWS - row) * 10;
 
-                self.world.create_entity_with_components()
+                self.world
+                    .create_entity_with_components()
                     .with(Position::new(x, y))
                     .with(Velocity::new(0.0, 0.0))
                     .with(Renderable::new("brick".to_string()))
@@ -268,7 +285,9 @@ impl BreakoutGame {
         self.world.write_resource::<Time>().elapsed += actual_delta;
 
         // Update input state resource
-        *self.world.write_resource::<input_window::WindowInputState>() = input_state.clone();
+        *self
+            .world
+            .write_resource::<input_window::WindowInputState>() = input_state.clone();
 
         // Update extracted systems
         self.particle_system.update(actual_delta);
@@ -289,11 +308,17 @@ impl BreakoutGame {
 
                 // Update ball trails
                 for ball_entity in &self.balls {
-                    if let Some(position) = self.world.read_storage::<Position>().get(*ball_entity) {
-                        if let Some(velocity) = self.world.read_storage::<Velocity>().get(*ball_entity) {
-                            self.trail_system.update_trail("ball", actual_delta,
-                                                          Vec2::new(position.x, position.y),
-                                                          Vec2::new(velocity.x, velocity.y));
+                    if let Some(position) = self.world.read_storage::<Position>().get(*ball_entity)
+                    {
+                        if let Some(velocity) =
+                            self.world.read_storage::<Velocity>().get(*ball_entity)
+                        {
+                            self.trail_system.update_trail(
+                                "ball",
+                                actual_delta,
+                                Vec2::new(position.x, position.y),
+                                Vec2::new(velocity.x, velocity.y),
+                            );
                         }
                     }
                 }
@@ -306,7 +331,9 @@ impl BreakoutGame {
                 }
 
                 // Check if all balls are lost
-                let active_balls = self.balls.iter()
+                let active_balls = self
+                    .balls
+                    .iter()
                     .filter(|&&entity| self.world.entities().is_alive(entity))
                     .count();
 
@@ -338,16 +365,24 @@ impl BreakoutGame {
     fn reset_ball(&mut self) {
         // Reset ball position and attach to paddle
         if let Some(ball_entity) = self.balls.first() {
-            if let Some(mut positions) = self.world.write_storage::<Position>().get_mut(*ball_entity) {
-                if let Some(mut velocities) = self.world.write_storage::<Velocity>().get_mut(*ball_entity) {
+            if let Some(mut positions) =
+                self.world.write_storage::<Position>().get_mut(*ball_entity)
+            {
+                if let Some(mut velocities) =
+                    self.world.write_storage::<Velocity>().get_mut(*ball_entity)
+                {
                     if let Some(paddle_entity) = self.paddle_entity {
-                        if let Some(paddle_pos) = self.world.read_storage::<Position>().get(paddle_entity) {
+                        if let Some(paddle_pos) =
+                            self.world.read_storage::<Position>().get(paddle_entity)
+                        {
                             positions.x = paddle_pos.x + PADDLE_WIDTH / 2.0 - BALL_SIZE / 2.0;
                             positions.y = paddle_pos.y - BALL_SIZE;
                             velocities.x = 0.0;
                             velocities.y = 0.0;
 
-                            if let Some(mut balls) = self.world.write_storage::<Ball>().get_mut(*ball_entity) {
+                            if let Some(mut balls) =
+                                self.world.write_storage::<Ball>().get_mut(*ball_entity)
+                            {
                                 balls.attached_to_paddle = true;
                             }
                         }
@@ -387,17 +422,37 @@ impl BreakoutGame {
     }
 
     fn render_menu(&self, renderer: &mut renderer_2d::Renderer2D) {
-        renderer.draw_text_centered("BREAKOUT", WINDOW_WIDTH / 2, 150,
-                                   renderer_2d::Color::WHITE, 3);
+        renderer.draw_text_centered(
+            "BREAKOUT",
+            WINDOW_WIDTH / 2,
+            150,
+            renderer_2d::Color::WHITE,
+            3,
+        );
 
-        renderer.draw_text_centered("Press SPACE to Start", WINDOW_WIDTH / 2, 300,
-                                   renderer_2d::Color::GREEN, 2);
+        renderer.draw_text_centered(
+            "Press SPACE to Start",
+            WINDOW_WIDTH / 2,
+            300,
+            renderer_2d::Color::GREEN,
+            2,
+        );
 
-        renderer.draw_text_centered("Use A/D or Left/Right to move paddle", WINDOW_WIDTH / 2, 350,
-                                   renderer_2d::Color::rgb(150, 150, 150), 1);
+        renderer.draw_text_centered(
+            "Use A/D or Left/Right to move paddle",
+            WINDOW_WIDTH / 2,
+            350,
+            renderer_2d::Color::rgb(150, 150, 150),
+            1,
+        );
 
-        renderer.draw_text_centered("Press ESC to pause", WINDOW_WIDTH / 2, 380,
-                                   renderer_2d::Color::rgb(150, 150, 150), 1);
+        renderer.draw_text_centered(
+            "Press ESC to pause",
+            WINDOW_WIDTH / 2,
+            380,
+            renderer_2d::Color::rgb(150, 150, 150),
+            1,
+        );
     }
 
     fn render_gameplay(&self, renderer: &mut renderer_2d::Renderer2D) {
@@ -407,9 +462,11 @@ impl BreakoutGame {
 
         for (pos, _) in (&positions, &paddles).join() {
             renderer.draw_rect(
-                pos.x as i32, pos.y as i32,
-                PADDLE_WIDTH as i32, PADDLE_HEIGHT as i32,
-                renderer_2d::Color::rgb(100, 200, 100)
+                pos.x as i32,
+                pos.y as i32,
+                PADDLE_WIDTH as i32,
+                PADDLE_HEIGHT as i32,
+                renderer_2d::Color::rgb(100, 200, 100),
             );
         }
 
@@ -420,7 +477,7 @@ impl BreakoutGame {
                 (pos.x + BALL_SIZE / 2.0) as i32,
                 (pos.y + BALL_SIZE / 2.0) as i32,
                 (BALL_SIZE / 2.0) as i32,
-                renderer_2d::Color::WHITE
+                renderer_2d::Color::WHITE,
             );
         }
 
@@ -431,13 +488,15 @@ impl BreakoutGame {
                 (brick.color[0] * 255.0) as u8,
                 (brick.color[1] * 255.0) as u8,
                 (brick.color[2] * 255.0) as u8,
-                (brick.color[3] * 255.0) as u8
+                (brick.color[3] * 255.0) as u8,
             );
 
             renderer.draw_rect(
-                pos.x as i32, pos.y as i32,
-                BRICK_WIDTH as i32, BRICK_HEIGHT as i32,
-                color
+                pos.x as i32,
+                pos.y as i32,
+                BRICK_WIDTH as i32,
+                BRICK_HEIGHT as i32,
+                color,
             );
         }
 
@@ -453,10 +512,7 @@ impl BreakoutGame {
                 PowerUpType::SlowerBall => renderer_2d::Color::CYAN,
             };
 
-            renderer.draw_circle_filled(
-                (pos.x + 10.0) as i32, (pos.y + 10.0) as i32,
-                8, color
-            );
+            renderer.draw_circle_filled((pos.x + 10.0) as i32, (pos.y + 10.0) as i32, 8, color);
         }
 
         // Render UI
@@ -465,7 +521,10 @@ impl BreakoutGame {
 
     fn render_ui(&self, renderer: &mut renderer_2d::Renderer2D) {
         // Score
-        let score_text = format!("Score: {}", self.scoring_system.get_score("player", &ScoreType::Points));
+        let score_text = format!(
+            "Score: {}",
+            self.scoring_system.get_score("player", &ScoreType::Points)
+        );
         renderer.draw_text(&score_text, 10, 10, renderer_2d::Color::WHITE, 2);
 
         // Lives
@@ -474,11 +533,23 @@ impl BreakoutGame {
 
         // Level
         let level_text = format!("Level: {}", self.level);
-        renderer.draw_text(&level_text, WINDOW_WIDTH - 100, 10, renderer_2d::Color::WHITE, 2);
+        renderer.draw_text(
+            &level_text,
+            WINDOW_WIDTH - 100,
+            10,
+            renderer_2d::Color::WHITE,
+            2,
+        );
 
         // Bricks remaining
         let bricks_text = format!("Bricks: {}", self.bricks_remaining);
-        renderer.draw_text(&bricks_text, WINDOW_WIDTH - 100, 40, renderer_2d::Color::WHITE, 2);
+        renderer.draw_text(
+            &bricks_text,
+            WINDOW_WIDTH - 100,
+            40,
+            renderer_2d::Color::WHITE,
+            2,
+        );
     }
 
     fn render_particles(&self, renderer: &mut renderer_2d::Renderer2D) {
@@ -493,48 +564,100 @@ impl BreakoutGame {
                     segment.position.x as i32,
                     segment.position.y as i32,
                     segment.size as i32,
-                    color
+                    color,
                 );
             }
         }
     }
 
     fn render_pause_overlay(&self, renderer: &mut renderer_2d::Renderer2D) {
-        renderer.draw_rect(0, 0, WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32,
-                          renderer_2d::Color::rgba(0, 0, 0, 150));
+        renderer.draw_rect(
+            0,
+            0,
+            WINDOW_WIDTH as i32,
+            WINDOW_HEIGHT as i32,
+            renderer_2d::Color::rgba(0, 0, 0, 150),
+        );
 
-        renderer.draw_text_centered("PAUSED", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50,
-                                   renderer_2d::Color::WHITE, 3);
-        renderer.draw_text_centered("Press ESC to resume", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,
-                                   renderer_2d::Color::rgb(200, 200, 200), 1);
+        renderer.draw_text_centered(
+            "PAUSED",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 - 50,
+            renderer_2d::Color::WHITE,
+            3,
+        );
+        renderer.draw_text_centered(
+            "Press ESC to resume",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2,
+            renderer_2d::Color::rgb(200, 200, 200),
+            1,
+        );
     }
 
     fn render_game_over(&self, renderer: &mut renderer_2d::Renderer2D, won: bool) {
-        renderer.draw_rect(0, 0, WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32,
-                          renderer_2d::Color::rgba(0, 0, 0, 200));
+        renderer.draw_rect(
+            0,
+            0,
+            WINDOW_WIDTH as i32,
+            WINDOW_HEIGHT as i32,
+            renderer_2d::Color::rgba(0, 0, 0, 200),
+        );
 
         let title = if won { "YOU WIN!" } else { "GAME OVER" };
-        let color = if won { renderer_2d::Color::GREEN } else { renderer_2d::Color::RED };
+        let color = if won {
+            renderer_2d::Color::GREEN
+        } else {
+            renderer_2d::Color::RED
+        };
 
         renderer.draw_text_centered(title, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50, color, 3);
 
-        let score_text = format!("Final Score: {}", self.scoring_system.get_score("player", &ScoreType::Points));
-        renderer.draw_text_centered(&score_text, WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,
-                                   renderer_2d::Color::WHITE, 2);
+        let score_text = format!(
+            "Final Score: {}",
+            self.scoring_system.get_score("player", &ScoreType::Points)
+        );
+        renderer.draw_text_centered(
+            &score_text,
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2,
+            renderer_2d::Color::WHITE,
+            2,
+        );
 
-        renderer.draw_text_centered("Press R to restart", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 + 50,
-                                   renderer_2d::Color::rgb(150, 150, 200), 1);
+        renderer.draw_text_centered(
+            "Press R to restart",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 + 50,
+            renderer_2d::Color::rgb(150, 150, 200),
+            1,
+        );
     }
 
     fn render_level_complete(&self, renderer: &mut renderer_2d::Renderer2D) {
-        renderer.draw_rect(0, 0, WINDOW_WIDTH as i32, WINDOW_HEIGHT as i32,
-                          renderer_2d::Color::rgba(0, 0, 0, 150));
+        renderer.draw_rect(
+            0,
+            0,
+            WINDOW_WIDTH as i32,
+            WINDOW_HEIGHT as i32,
+            renderer_2d::Color::rgba(0, 0, 0, 150),
+        );
 
-        renderer.draw_text_centered("LEVEL COMPLETE!", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2 - 50,
-                                   renderer_2d::Color::GREEN, 3);
+        renderer.draw_text_centered(
+            "LEVEL COMPLETE!",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2 - 50,
+            renderer_2d::Color::GREEN,
+            3,
+        );
 
-        renderer.draw_text_centered("Press SPACE for next level", WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2,
-                                   renderer_2d::Color::rgb(200, 200, 200), 1);
+        renderer.draw_text_centered(
+            "Press SPACE for next level",
+            WINDOW_WIDTH / 2,
+            WINDOW_HEIGHT / 2,
+            renderer_2d::Color::rgb(200, 200, 200),
+            1,
+        );
     }
 
     pub fn handle_input(&mut self, input_state: &input_window::WindowInputState) {
@@ -562,8 +685,10 @@ impl BreakoutGame {
                                 {
                                     let mut velocities = self.world.write_storage::<Velocity>();
                                     if let Some(velocity) = velocities.get_mut(*ball_entity) {
-                                        velocity.x = BALL_SPEED * self.difficulty_system.ball_speed_multiplier();
-                                        velocity.y = -BALL_SPEED * self.difficulty_system.ball_speed_multiplier();
+                                        velocity.x = BALL_SPEED
+                                            * self.difficulty_system.ball_speed_multiplier();
+                                        velocity.y = -BALL_SPEED
+                                            * self.difficulty_system.ball_speed_multiplier();
                                     }
                                 }
 
@@ -606,15 +731,12 @@ impl BreakoutGame {
 }
 
 // Game systems
-use specs::{System, ReadStorage, WriteStorage, Read, Write, Entities, Join};
+use specs::{Entities, Join, Read, ReadStorage, System, WriteStorage};
 
 pub struct BreakoutInputSystem;
 
 impl<'a> System<'a> for BreakoutInputSystem {
-    type SystemData = (
-        WriteStorage<'a, Velocity>,
-        ReadStorage<'a, Paddle>,
-    );
+    type SystemData = (WriteStorage<'a, Velocity>, ReadStorage<'a, Paddle>);
 
     fn run(&mut self, (mut velocities, paddles): Self::SystemData) {
         // Input is handled in the main game loop, not in systems
@@ -658,7 +780,10 @@ impl<'a> System<'a> for BreakoutCollisionSystem {
         ReadStorage<'a, PowerUp>,
     );
 
-    fn run(&mut self, (entities, mut positions, mut velocities, balls, paddles, bricks, powerups): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, mut positions, mut velocities, balls, paddles, bricks, powerups): Self::SystemData,
+    ) {
         // Ball-wall collisions
         for (entity, pos, vel, _) in (&entities, &mut positions, &mut velocities, &balls).join() {
             // Left and right walls
@@ -680,13 +805,17 @@ impl<'a> System<'a> for BreakoutCollisionSystem {
         }
 
         // Ball-paddle collisions
-        for (ball_entity, ball_pos, ball_vel, _) in (&entities, &positions, &mut velocities, &balls).join() {
+        for (ball_entity, ball_pos, ball_vel, _) in
+            (&entities, &positions, &mut velocities, &balls).join()
+        {
             for (paddle_pos, _) in (&positions, &paddles).join() {
-                if ball_pos.x < paddle_pos.x + PADDLE_WIDTH &&
-                   ball_pos.x + BALL_SIZE > paddle_pos.x &&
-                   ball_pos.y < paddle_pos.y + PADDLE_HEIGHT &&
-                   ball_pos.y + BALL_SIZE > paddle_pos.y &&
-                   ball_vel.y > 0.0 { // Only if ball is moving down
+                if ball_pos.x < paddle_pos.x + PADDLE_WIDTH
+                    && ball_pos.x + BALL_SIZE > paddle_pos.x
+                    && ball_pos.y < paddle_pos.y + PADDLE_HEIGHT
+                    && ball_pos.y + BALL_SIZE > paddle_pos.y
+                    && ball_vel.y > 0.0
+                {
+                    // Only if ball is moving down
 
                     ball_vel.y = -ball_vel.y;
 
@@ -703,13 +832,15 @@ impl<'a> System<'a> for BreakoutCollisionSystem {
         // Ball-brick collisions
         let mut bricks_to_remove = Vec::new();
 
-        for (ball_entity, ball_pos, ball_vel, _) in (&entities, &positions, &mut velocities, &balls).join() {
+        for (ball_entity, ball_pos, ball_vel, _) in
+            (&entities, &positions, &mut velocities, &balls).join()
+        {
             for (brick_entity, brick_pos, brick) in (&entities, &positions, &bricks).join() {
-                if ball_pos.x < brick_pos.x + BRICK_WIDTH &&
-                   ball_pos.x + BALL_SIZE > brick_pos.x &&
-                   ball_pos.y < brick_pos.y + BRICK_HEIGHT &&
-                   ball_pos.y + BALL_SIZE > brick_pos.y {
-
+                if ball_pos.x < brick_pos.x + BRICK_WIDTH
+                    && ball_pos.x + BALL_SIZE > brick_pos.x
+                    && ball_pos.y < brick_pos.y + BRICK_HEIGHT
+                    && ball_pos.y + BALL_SIZE > brick_pos.y
+                {
                     // Ball collision with brick
                     ball_vel.y = -ball_vel.y;
 
@@ -795,12 +926,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Main game loop
     while !render_context.should_close() {
         let current_time = std::time::Instant::now();
-        let delta_time = current_time.duration_since(breakout_game.last_update).as_secs_f32();
+        let delta_time = current_time
+            .duration_since(breakout_game.last_update)
+            .as_secs_f32();
 
         // Update input
         input_manager.update(render_context.window.window_ref());
-
-
 
         // Handle input
         breakout_game.handle_input(input_manager.state());

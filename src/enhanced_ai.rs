@@ -169,7 +169,7 @@ pub struct AIDecision {
     pub desired_velocity: Vec2,
     pub desired_state: AIState,
     pub should_attack: bool,
-    pub priority: f32, // 0.0-1.0, higher = more important
+    pub priority: f32,   // 0.0-1.0, higher = more important
     pub confidence: f32, // 0.0-1.0, how confident in this decision
 }
 
@@ -244,7 +244,11 @@ impl AIBehaviorImpl for PongPaddleAI {
 
             // Only move if ball is reasonably close
             if distance > 5.0 {
-                let direction = if ball_center > paddle_center { 1.0 } else { -1.0 };
+                let _direction = if ball_center > paddle_center {
+                    1.0
+                } else {
+                    -1.0
+                };
                 let speed = self.paddle_speed * context.difficulty.reaction_multiplier();
 
                 // Add some imperfection based on difficulty
@@ -410,22 +414,41 @@ impl AISystem {
     }
 
     /// Register a chase AI
-    pub fn register_chase_ai(&mut self, id: &str, move_speed: f32, attack_range: f32, difficulty: AIDifficulty) {
+    pub fn register_chase_ai(
+        &mut self,
+        id: &str,
+        move_speed: f32,
+        attack_range: f32,
+        difficulty: AIDifficulty,
+    ) {
         let ai = ChaseAI::new(move_speed, attack_range).with_difficulty(difficulty);
         self.register_agent(id, Box::new(ai));
     }
 
     /// Register a patrol AI
-    pub fn register_patrol_ai(&mut self, id: &str, waypoints: Vec<Vec2>, move_speed: f32, difficulty: AIDifficulty) {
+    pub fn register_patrol_ai(
+        &mut self,
+        id: &str,
+        waypoints: Vec<Vec2>,
+        move_speed: f32,
+        difficulty: AIDifficulty,
+    ) {
         let ai = PatrolAI::new(waypoints, move_speed).with_difficulty(difficulty);
         self.register_agent(id, Box::new(ai));
     }
 
     /// Update AI context for an agent
-    pub fn update_context(&mut self, id: &str, position: Vec2, velocity: Vec2, target: Option<AITarget>) {
-        let context = self.contexts.entry(id.to_string()).or_insert_with(|| {
-            AIContext::new(position, velocity, AIDifficulty::Normal)
-        });
+    pub fn update_context(
+        &mut self,
+        id: &str,
+        position: Vec2,
+        velocity: Vec2,
+        target: Option<AITarget>,
+    ) {
+        let context = self
+            .contexts
+            .entry(id.to_string())
+            .or_insert_with(|| AIContext::new(position, velocity, AIDifficulty::Normal));
 
         context.position = position;
         context.velocity = velocity;
@@ -543,11 +566,7 @@ mod tests {
             AIDifficulty::Normal,
         );
 
-        let target = AITarget::new(
-            Vec2::new(100.0, 0.0),
-            Vec2::new(0.0, 0.0),
-            context.position,
-        );
+        let target = AITarget::new(Vec2::new(100.0, 0.0), Vec2::new(0.0, 0.0), context.position);
         context.target = Some(target);
 
         let decision = ai.decide(&context);

@@ -3,8 +3,8 @@
 //! A graphical Pong game running in a real window with basic 2D graphics.
 //! Uses minifb for simple window and graphics rendering.
 
-use modular_game_engine::*;
 use minifb::{Key, Window, WindowOptions};
+use modular_game_engine::*;
 use std::time::Instant;
 
 // Game constants
@@ -113,9 +113,13 @@ impl WindowPongGame {
 
                 // Check for game end
                 if self.score.0 >= 5 {
-                    self.game_state = GameState::GameOver { winner: "Player".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "Player".to_string(),
+                    };
                 } else if self.score.1 >= 5 {
-                    self.game_state = GameState::GameOver { winner: "AI".to_string() };
+                    self.game_state = GameState::GameOver {
+                        winner: "AI".to_string(),
+                    };
                 }
             }
             _ => {}
@@ -168,36 +172,109 @@ impl WindowPongGame {
             GameState::Playing | GameState::Paused => {
                 self.draw_game();
                 if let GameState::Paused = self.game_state {
-                    self.draw_text("PAUSED", WINDOW_WIDTH / 2 - 100, WINDOW_HEIGHT / 2, WHITE, 2);
-                    self.draw_text("Press ESC to Resume", WINDOW_WIDTH / 2 - 150, WINDOW_HEIGHT / 2 + 50, WHITE, 1);
+                    self.draw_text(
+                        "PAUSED",
+                        WINDOW_WIDTH / 2 - 100,
+                        WINDOW_HEIGHT / 2,
+                        WHITE,
+                        2,
+                    );
+                    self.draw_text(
+                        "Press ESC to Resume",
+                        WINDOW_WIDTH / 2 - 150,
+                        WINDOW_HEIGHT / 2 + 50,
+                        WHITE,
+                        1,
+                    );
                 }
             }
             GameState::GameOver { ref winner } => {
                 let winner_text = format!("{} Wins!", winner);
                 let score_text = format!("Final Score: {} - {}", self.score.0, self.score.1);
                 self.draw_game();
-                self.draw_text("GAME OVER", WINDOW_WIDTH / 2 - 120, WINDOW_HEIGHT / 2 - 50, RED, 2);
-                self.draw_text(&winner_text, WINDOW_WIDTH / 2 - 100, WINDOW_HEIGHT / 2, WHITE, 2);
-                self.draw_text("Press SPACE for Menu", WINDOW_WIDTH / 2 - 140, WINDOW_HEIGHT / 2 + 50, WHITE, 1);
-                self.draw_text(&score_text, WINDOW_WIDTH / 2 - 120, WINDOW_HEIGHT / 2 + 100, BLUE, 1);
+                self.draw_text(
+                    "GAME OVER",
+                    WINDOW_WIDTH / 2 - 120,
+                    WINDOW_HEIGHT / 2 - 50,
+                    RED,
+                    2,
+                );
+                self.draw_text(
+                    &winner_text,
+                    WINDOW_WIDTH / 2 - 100,
+                    WINDOW_HEIGHT / 2,
+                    WHITE,
+                    2,
+                );
+                self.draw_text(
+                    "Press SPACE for Menu",
+                    WINDOW_WIDTH / 2 - 140,
+                    WINDOW_HEIGHT / 2 + 50,
+                    WHITE,
+                    1,
+                );
+                self.draw_text(
+                    &score_text,
+                    WINDOW_WIDTH / 2 - 120,
+                    WINDOW_HEIGHT / 2 + 100,
+                    BLUE,
+                    1,
+                );
             }
         }
 
         // Update window with buffer
-        self.window.update_with_buffer(&self.buffer, WINDOW_WIDTH, WINDOW_HEIGHT)
+        self.window
+            .update_with_buffer(&self.buffer, WINDOW_WIDTH, WINDOW_HEIGHT)
             .unwrap();
     }
 
     fn draw_menu(&mut self) {
         // Draw title
-        self.draw_text("PONG", WINDOW_WIDTH / 2 - 80, WINDOW_HEIGHT / 2 - 100, WHITE, 3);
-        self.draw_text("Modular Game Engine", WINDOW_WIDTH / 2 - 150, WINDOW_HEIGHT / 2 - 60, BLUE, 2);
+        self.draw_text(
+            "PONG",
+            WINDOW_WIDTH / 2 - 80,
+            WINDOW_HEIGHT / 2 - 100,
+            WHITE,
+            3,
+        );
+        self.draw_text(
+            "Modular Game Engine",
+            WINDOW_WIDTH / 2 - 150,
+            WINDOW_HEIGHT / 2 - 60,
+            BLUE,
+            2,
+        );
 
         // Draw instructions
-        self.draw_text("Press SPACE to Start", WINDOW_WIDTH / 2 - 130, WINDOW_HEIGHT / 2, GREEN, 1);
-        self.draw_text("W/S: Move Paddle", WINDOW_WIDTH / 2 - 100, WINDOW_HEIGHT / 2 + 40, WHITE, 1);
-        self.draw_text("ESC: Pause/Menu", WINDOW_WIDTH / 2 - 110, WINDOW_HEIGHT / 2 + 70, WHITE, 1);
-        self.draw_text("First to 5 points wins!", WINDOW_WIDTH / 2 - 140, WINDOW_HEIGHT / 2 + 120, RED, 1);
+        self.draw_text(
+            "Press SPACE to Start",
+            WINDOW_WIDTH / 2 - 130,
+            WINDOW_HEIGHT / 2,
+            GREEN,
+            1,
+        );
+        self.draw_text(
+            "W/S: Move Paddle",
+            WINDOW_WIDTH / 2 - 100,
+            WINDOW_HEIGHT / 2 + 40,
+            WHITE,
+            1,
+        );
+        self.draw_text(
+            "ESC: Pause/Menu",
+            WINDOW_WIDTH / 2 - 110,
+            WINDOW_HEIGHT / 2 + 70,
+            WHITE,
+            1,
+        );
+        self.draw_text(
+            "First to 5 points wins!",
+            WINDOW_WIDTH / 2 - 140,
+            WINDOW_HEIGHT / 2 + 120,
+            RED,
+            1,
+        );
     }
 
     fn draw_game(&mut self) {
@@ -205,7 +282,8 @@ impl WindowPongGame {
         let paddle_data: Vec<(f32, f32, bool)> = {
             let positions = self.world.read_storage::<Position>();
             let paddles = self.world.read_storage::<Paddle>();
-            (&positions, &paddles).join()
+            (&positions, &paddles)
+                .join()
                 .map(|(pos, paddle)| (pos.x, pos.y, paddle.player_controlled))
                 .collect()
         };
@@ -213,7 +291,8 @@ impl WindowPongGame {
         let ball_data: Vec<(f32, f32)> = {
             let positions = self.world.read_storage::<Position>();
             let balls = self.world.read_storage::<Ball>();
-            (&positions, &balls).join()
+            (&positions, &balls)
+                .join()
                 .map(|(pos, _)| (pos.x, pos.y))
                 .collect()
         };
@@ -221,12 +300,24 @@ impl WindowPongGame {
         // Draw paddles
         for (x, y, is_player) in paddle_data {
             let color = if is_player { GREEN } else { RED };
-            self.draw_rect(x as i32, y as i32, PADDLE_WIDTH as i32, PADDLE_HEIGHT as i32, color);
+            self.draw_rect(
+                x as i32,
+                y as i32,
+                PADDLE_WIDTH as i32,
+                PADDLE_HEIGHT as i32,
+                color,
+            );
         }
 
         // Draw ball
         for (x, y) in ball_data {
-            self.draw_rect(x as i32, y as i32, BALL_SIZE as i32, BALL_SIZE as i32, WHITE);
+            self.draw_rect(
+                x as i32,
+                y as i32,
+                BALL_SIZE as i32,
+                BALL_SIZE as i32,
+                WHITE,
+            );
         }
 
         // Draw center line
@@ -276,134 +367,170 @@ impl WindowPongGame {
     fn draw_char(&mut self, ch: char, x: usize, y: usize, color: u32, scale: usize) {
         // Simple 5x7 font for basic characters
         let font_data = match ch {
-            '0' => [[true, true, true, true, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, true, true, true, true]],
-            '1' => [[false, false, true, false, false],
-                    [false, true, true, false, false],
-                    [false, false, true, false, false],
-                    [false, false, true, false, false],
-                    [false, false, true, false, false],
-                    [false, false, true, false, false],
-                    [true, true, true, true, true]],
-            '2' => [[true, true, true, true, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true],
-                    [true, true, true, true, true],
-                    [true, false, false, false, false],
-                    [true, false, false, false, false],
-                    [true, true, true, true, true]],
-            '3' => [[true, true, true, true, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true],
-                    [true, true, true, true, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true],
-                    [true, true, true, true, true]],
-            '4' => [[true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, true, true, true, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true]],
-            '5' => [[true, true, true, true, true],
-                    [true, false, false, false, false],
-                    [true, false, false, false, false],
-                    [true, true, true, true, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true],
-                    [true, true, true, true, true]],
-            '6' => [[true, true, true, true, true],
-                    [true, false, false, false, false],
-                    [true, false, false, false, false],
-                    [true, true, true, true, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, true, true, true, true]],
-            '7' => [[true, true, true, true, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true],
-                    [false, false, false, true, false],
-                    [false, false, true, false, false],
-                    [false, true, false, false, false],
-                    [true, false, false, false, false]],
-            '8' => [[true, true, true, true, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, true, true, true, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, true, true, true, true]],
-            '9' => [[true, true, true, true, true],
-                    [true, false, false, false, true],
-                    [true, false, false, false, true],
-                    [true, true, true, true, true],
-                    [false, false, false, false, true],
-                    [false, false, false, false, true],
-                    [true, true, true, true, true]],
+            '0' => [
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true],
+            ],
+            '1' => [
+                [false, false, true, false, false],
+                [false, true, true, false, false],
+                [false, false, true, false, false],
+                [false, false, true, false, false],
+                [false, false, true, false, false],
+                [false, false, true, false, false],
+                [true, true, true, true, true],
+            ],
+            '2' => [
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true],
+                [true, false, false, false, false],
+                [true, false, false, false, false],
+                [true, true, true, true, true],
+            ],
+            '3' => [
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true],
+            ],
+            '4' => [
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+            ],
+            '5' => [
+                [true, true, true, true, true],
+                [true, false, false, false, false],
+                [true, false, false, false, false],
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true],
+            ],
+            '6' => [
+                [true, true, true, true, true],
+                [true, false, false, false, false],
+                [true, false, false, false, false],
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true],
+            ],
+            '7' => [
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [false, false, false, true, false],
+                [false, false, true, false, false],
+                [false, true, false, false, false],
+                [true, false, false, false, false],
+            ],
+            '8' => [
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true],
+            ],
+            '9' => [
+                [true, true, true, true, true],
+                [true, false, false, false, true],
+                [true, false, false, false, true],
+                [true, true, true, true, true],
+                [false, false, false, false, true],
+                [false, false, false, false, true],
+                [true, true, true, true, true],
+            ],
             'A'..='Z' => match ch {
-                'A' => [[false, true, true, true, false],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, true, true, true, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true]],
-                'G' => [[true, true, true, true, true],
-                        [true, false, false, false, false],
-                        [true, false, false, false, false],
-                        [true, false, true, true, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, true, true, true, true]],
-                'M' => [[true, false, false, false, true],
-                        [true, true, false, true, true],
-                        [true, false, true, false, true],
-                        [true, false, true, false, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true]],
-                'O' => [[true, true, true, true, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, true, true, true, true]],
-                'P' => [[true, true, true, true, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, true, true, true, true],
-                        [true, false, false, false, false],
-                        [true, false, false, false, false],
-                        [true, false, false, false, false]],
-                'W' => [[true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, false, false, false, true],
-                        [true, false, true, false, true],
-                        [true, false, true, false, true],
-                        [true, true, false, true, true],
-                        [true, false, false, false, true]],
-                _ => [[true, true, true, true, true],
-                      [true, false, false, false, true],
-                      [true, false, false, false, true],
-                      [true, false, false, false, true],
-                      [true, false, false, false, true],
-                      [true, false, false, false, true],
-                      [true, true, true, true, true]], // Default box
+                'A' => [
+                    [false, true, true, true, false],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, true, true, true, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                ],
+                'G' => [
+                    [true, true, true, true, true],
+                    [true, false, false, false, false],
+                    [true, false, false, false, false],
+                    [true, false, true, true, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, true, true, true, true],
+                ],
+                'M' => [
+                    [true, false, false, false, true],
+                    [true, true, false, true, true],
+                    [true, false, true, false, true],
+                    [true, false, true, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                ],
+                'O' => [
+                    [true, true, true, true, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, true, true, true, true],
+                ],
+                'P' => [
+                    [true, true, true, true, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, true, true, true, true],
+                    [true, false, false, false, false],
+                    [true, false, false, false, false],
+                    [true, false, false, false, false],
+                ],
+                'W' => [
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, true, false, true],
+                    [true, false, true, false, true],
+                    [true, true, false, true, true],
+                    [true, false, false, false, true],
+                ],
+                _ => [
+                    [true, true, true, true, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, false, false, false, true],
+                    [true, true, true, true, true],
+                ], // Default box
             },
-            _ => [[false, false, false, false, false],
-                  [false, false, false, false, false],
-                  [false, false, false, false, false],
-                  [false, false, false, false, false],
-                  [false, false, false, false, false],
-                  [false, false, false, false, false],
-                  [false, false, false, false, false]], // Empty
+            _ => [
+                [false, false, false, false, false],
+                [false, false, false, false, false],
+                [false, false, false, false, false],
+                [false, false, false, false, false],
+                [false, false, false, false, false],
+                [false, false, false, false, false],
+                [false, false, false, false, false],
+            ], // Empty
         };
 
         for (row, pixels) in font_data.iter().enumerate() {
@@ -423,14 +550,11 @@ impl WindowPongGame {
 }
 
 // Game systems (reuse from simple graphical pong)
-use specs::{System, ReadStorage, WriteStorage, Read, Write, Entities, Join};
+use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 pub struct PongInputSystem;
 impl<'a> System<'a> for PongInputSystem {
-    type SystemData = (
-        WriteStorage<'a, Velocity>,
-        ReadStorage<'a, Paddle>,
-    );
+    type SystemData = (WriteStorage<'a, Velocity>, ReadStorage<'a, Paddle>);
 
     fn run(&mut self, (mut velocities, paddles): Self::SystemData) {
         for (velocity, paddle) in (&mut velocities, &paddles).join() {
@@ -453,11 +577,15 @@ impl<'a> System<'a> for PongAISystem {
     );
 
     fn run(&mut self, (positions, mut velocities, paddles, balls, time): Self::SystemData) {
-        let ball_pos = balls.join()
+        let ball_pos = balls
+            .join()
             .next()
             .and_then(|_| positions.join().next())
             .map(|pos| pos.as_vec2())
-            .unwrap_or(Vec2::new(WINDOW_WIDTH as f32 / 2.0, WINDOW_HEIGHT as f32 / 2.0));
+            .unwrap_or(Vec2::new(
+                WINDOW_WIDTH as f32 / 2.0,
+                WINDOW_HEIGHT as f32 / 2.0,
+            ));
 
         for (position, velocity, paddle) in (&positions, &mut velocities, &paddles).join() {
             if !paddle.player_controlled {
@@ -488,13 +616,18 @@ impl<'a> System<'a> for PongCollisionSystem {
         Write<'a, Score>,
     );
 
-    fn run(&mut self, (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, mut positions, mut velocities, balls, paddles, mut score): Self::SystemData,
+    ) {
         // Get collision data first to avoid borrowing conflicts
-        let ball_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &balls).join()
+        let ball_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &balls)
+            .join()
             .map(|(entity, pos, _)| (entity, pos.clone()))
             .collect();
 
-        let paddle_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &paddles).join()
+        let paddle_positions: Vec<(specs::Entity, Position)> = (&entities, &positions, &paddles)
+            .join()
             .map(|(entity, pos, _)| (entity, pos.clone()))
             .collect();
 
@@ -543,13 +676,17 @@ impl<'a> System<'a> for PongCollisionSystem {
 }
 
 fn check_paddle_ball_collision(ball_pos: &Position, paddle_pos: &Position) -> bool {
-    ball_pos.x < paddle_pos.x + PADDLE_WIDTH &&
-    ball_pos.x + BALL_SIZE > paddle_pos.x &&
-    ball_pos.y < paddle_pos.y + PADDLE_HEIGHT &&
-    ball_pos.y + BALL_SIZE > paddle_pos.y
+    ball_pos.x < paddle_pos.x + PADDLE_WIDTH
+        && ball_pos.x + BALL_SIZE > paddle_pos.x
+        && ball_pos.y < paddle_pos.y + PADDLE_HEIGHT
+        && ball_pos.y + BALL_SIZE > paddle_pos.y
 }
 
-fn reset_ball_positions(positions: &mut WriteStorage<Position>, velocities: &mut WriteStorage<Velocity>, balls: &ReadStorage<Ball>) {
+fn reset_ball_positions(
+    positions: &mut WriteStorage<Position>,
+    velocities: &mut WriteStorage<Velocity>,
+    balls: &ReadStorage<Ball>,
+) {
     for (pos, vel, _) in (positions, velocities, balls).join() {
         pos.x = WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0;
         pos.y = WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0;
@@ -575,26 +712,42 @@ impl<'a> System<'a> for PongGameLogicSystem {
 // Helper functions
 fn create_pong_entities(world: &mut World) {
     // Create player paddle (left side)
-    world.create_entity_with_components()
-        .with(Position::new(50.0, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            50.0,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("player_paddle".to_string()))
-        .with(Paddle { player_controlled: true })
+        .with(Paddle {
+            player_controlled: true,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create AI paddle (right side)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH, WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 - 50.0 - PADDLE_WIDTH,
+            WINDOW_HEIGHT as f32 / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("ai_paddle".to_string()))
-        .with(Paddle { player_controlled: false })
+        .with(Paddle {
+            player_controlled: false,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create ball (center)
-    world.create_entity_with_components()
-        .with(Position::new(WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0, WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            WINDOW_WIDTH as f32 / 2.0 - BALL_SIZE / 2.0,
+            WINDOW_HEIGHT as f32 / 2.0 - BALL_SIZE / 2.0,
+        ))
         .with(Velocity::new(BALL_SPEED, BALL_SPEED * 0.5))
         .with(Renderable::new("ball".to_string()))
         .with(Ball)
@@ -602,7 +755,8 @@ fn create_pong_entities(world: &mut World) {
         .build();
 
     // Create score entity
-    world.create_entity_with_components()
+    world
+        .create_entity_with_components()
         .with(Score::default())
         .build();
 }

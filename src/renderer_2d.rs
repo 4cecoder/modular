@@ -3,8 +3,8 @@
 //! Provides basic 2D rendering capabilities for games.
 //! Supports shapes, text, and frame buffer management.
 
-use crate::window::WindowManager;
 use crate::font::{FontSystem, TextBitmap};
+use crate::window::WindowManager;
 use std::path::Path;
 
 /// Color representation (ARGB format)
@@ -201,7 +201,14 @@ impl Renderer2D {
     }
 
     /// Draw text centered at a position
-    pub fn draw_text_centered(&mut self, text: &str, center_x: usize, y: usize, color: Color, scale: usize) {
+    pub fn draw_text_centered(
+        &mut self,
+        text: &str,
+        center_x: usize,
+        y: usize,
+        color: Color,
+        scale: usize,
+    ) {
         // Use same font size calculation as draw_text
         let base_size = 16.0;
         let font_size = base_size + (scale as f32 - 1.0) * 8.0;
@@ -1233,7 +1240,6 @@ impl Renderer2D {
                 [false, false, false, false, false, false, false],
             ],
 
-
             '!' => [
                 [false, false, true, false, false, false, false],
                 [false, false, true, false, false, false, false],
@@ -1383,7 +1389,11 @@ impl Renderer2D {
     }
 
     /// Load a TTF font from file
-    pub fn load_font<P: AsRef<Path>>(&mut self, name: &str, path: P) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn load_font<P: AsRef<Path>>(
+        &mut self,
+        name: &str,
+        path: P,
+    ) -> Result<(), Box<dyn std::error::Error>> {
         self.font_system.load_font_from_file(name, path)
     }
 

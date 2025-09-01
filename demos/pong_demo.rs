@@ -4,7 +4,7 @@
 //! Demonstrates ECS, Physics, Input, and Game Logic integration.
 
 use modular_game_engine::*;
-use specs::{World, WorldExt, RunNow, Component, VecStorage, DenseVecStorage};
+use specs::{Component, DenseVecStorage, VecStorage, World, WorldExt};
 use std::time::{Duration, Instant};
 
 // Game constants
@@ -59,8 +59,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Register game state as resource
     world.insert(GameState::default());
 
-
-
     // Create game entities
     create_pong_entities(&mut world);
 
@@ -95,7 +93,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         // Display game state every 60 frames (1 second)
         if frame_count % 60 == 0 {
             let game_state = world.read_resource::<GameState>();
-            print!("\rPlayer: {} | AI: {} | ", game_state.player_score, game_state.ai_score);
+            print!(
+                "\rPlayer: {} | AI: {} | ",
+                game_state.player_score, game_state.ai_score
+            );
 
             match game_state.game_phase {
                 GamePhase::Playing => print!("Playing"),
@@ -138,26 +139,42 @@ fn create_pong_entities(world: &mut World) {
     println!("Creating Pong entities...");
 
     // Create player paddle (left side)
-    world.create_entity_with_components()
-        .with(Position::new(50.0, SCREEN_HEIGHT / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            50.0,
+            SCREEN_HEIGHT / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("player_paddle".to_string()))
-        .with(Paddle { player_controlled: true })
+        .with(Paddle {
+            player_controlled: true,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create AI paddle (right side)
-    world.create_entity_with_components()
-        .with(Position::new(SCREEN_WIDTH - 50.0 - PADDLE_WIDTH, SCREEN_HEIGHT / 2.0 - PADDLE_HEIGHT / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            SCREEN_WIDTH - 50.0 - PADDLE_WIDTH,
+            SCREEN_HEIGHT / 2.0 - PADDLE_HEIGHT / 2.0,
+        ))
         .with(Velocity::new(0.0, 0.0))
         .with(Renderable::new("ai_paddle".to_string()))
-        .with(Paddle { player_controlled: false })
+        .with(Paddle {
+            player_controlled: false,
+        })
         .with(Collider::new_rectangle(PADDLE_WIDTH, PADDLE_HEIGHT))
         .build();
 
     // Create ball (center)
-    world.create_entity_with_components()
-        .with(Position::new(SCREEN_WIDTH / 2.0 - BALL_SIZE / 2.0, SCREEN_HEIGHT / 2.0 - BALL_SIZE / 2.0))
+    world
+        .create_entity_with_components()
+        .with(Position::new(
+            SCREEN_WIDTH / 2.0 - BALL_SIZE / 2.0,
+            SCREEN_HEIGHT / 2.0 - BALL_SIZE / 2.0,
+        ))
         .with(Velocity::new(BALL_SPEED, BALL_SPEED * 0.5))
         .with(Renderable::new("ball".to_string()))
         .with(Ball)
@@ -165,8 +182,12 @@ fn create_pong_entities(world: &mut World) {
         .build();
 
     // Create score entities (for display)
-    world.create_entity_with_components()
-        .with(Score { player_score: 0, ai_score: 0 })
+    world
+        .create_entity_with_components()
+        .with(Score {
+            player_score: 0,
+            ai_score: 0,
+        })
         .build();
 
     println!("Created: Player paddle, AI paddle, Ball, Score system");
@@ -191,7 +212,7 @@ pub struct Score {
 }
 
 // Game systems
-use specs::{System, ReadStorage, WriteStorage, Read, Write, Entities, Join};
+use specs::{Entities, Join, Read, ReadStorage, System, Write, WriteStorage};
 
 /// Input system for Pong
 pub struct PongInputSystem;
@@ -209,10 +230,16 @@ impl<'a> System<'a> for PongInputSystem {
                 // Player paddle control
                 velocity.y = 0.0;
 
-                if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::W) {
+                if input_state
+                    .keys_pressed
+                    .contains(&winit::event::VirtualKeyCode::W)
+                {
                     velocity.y = -PADDLE_SPEED;
                 }
-                if input_state.keys_pressed.contains(&winit::event::VirtualKeyCode::S) {
+                if input_state
+                    .keys_pressed
+                    .contains(&winit::event::VirtualKeyCode::S)
+                {
                     velocity.y = PADDLE_SPEED;
                 }
             }
@@ -234,7 +261,8 @@ impl<'a> System<'a> for PongAISystem {
 
     fn run(&mut self, (positions, mut velocities, paddles, balls, time): Self::SystemData) {
         // Find ball position
-        let ball_pos = balls.join()
+        let ball_pos = balls
+            .join()
             .next()
             .and_then(|_| positions.join().next())
             .map(|pos| pos.as_vec2())
@@ -275,7 +303,10 @@ impl<'a> System<'a> for PongCollisionSystem {
         Write<'a, GameState>,
     );
 
-    fn run(&mut self, (entities, positions, mut velocities, balls, paddles, mut game_state): Self::SystemData) {
+    fn run(
+        &mut self,
+        (entities, positions, mut velocities, balls, paddles, mut game_state): Self::SystemData,
+    ) {
         for (ball_entity, ball_pos, _) in (&entities, &positions, &balls).join() {
             // Ball collision with top/bottom walls
             if ball_pos.y <= 0.0 || ball_pos.y >= SCREEN_HEIGHT - BALL_SIZE {
@@ -293,7 +324,10 @@ impl<'a> System<'a> for PongCollisionSystem {
                     ball_hit = true;
                     // Calculate new velocity
                     let current_vel = velocities.get(ball_entity).unwrap();
-                    let mut new_vel = Velocity { x: -current_vel.x, y: current_vel.y };
+                    let mut new_vel = Velocity {
+                        x: -current_vel.x,
+                        y: current_vel.y,
+                    };
 
                     // Add spin based on where ball hits paddle
                     let paddle_center = paddle_pos.y + PADDLE_HEIGHT / 2.0;
@@ -337,10 +371,10 @@ impl<'a> System<'a> for PongCollisionSystem {
 }
 
 fn check_paddle_ball_collision(ball_pos: &Position, paddle_pos: &Position) -> bool {
-    ball_pos.x < paddle_pos.x + PADDLE_WIDTH &&
-    ball_pos.x + BALL_SIZE > paddle_pos.x &&
-    ball_pos.y < paddle_pos.y + PADDLE_HEIGHT &&
-    ball_pos.y + BALL_SIZE > paddle_pos.y
+    ball_pos.x < paddle_pos.x + PADDLE_WIDTH
+        && ball_pos.x + BALL_SIZE > paddle_pos.x
+        && ball_pos.y < paddle_pos.y + PADDLE_HEIGHT
+        && ball_pos.y + BALL_SIZE > paddle_pos.y
 }
 
 fn reset_ball(velocities: &mut WriteStorage<Velocity>, balls: &ReadStorage<Ball>) {
@@ -363,7 +397,10 @@ impl<'a> System<'a> for PongGameLogicSystem {
         Read<'a, Time>,
     );
 
-    fn run(&mut self, (mut positions, mut velocities, balls, mut game_state, time): Self::SystemData) {
+    fn run(
+        &mut self,
+        (mut positions, mut velocities, balls, mut game_state, time): Self::SystemData,
+    ) {
         match game_state.game_phase {
             GamePhase::Scored => {
                 // Wait a moment before resetting
@@ -403,14 +440,21 @@ impl<'a> System<'a> for PongRenderingSystem {
         Read<'a, Time>,
     );
 
-    fn run(&mut self, (positions, renderables, paddles, balls, game_state, time): Self::SystemData) {
+    fn run(
+        &mut self,
+        (positions, renderables, paddles, balls, game_state, time): Self::SystemData,
+    ) {
         // Simple console-based rendering
         if time.elapsed % 1.0 < time.delta {
             println!("\n=== Pong Game State ===");
 
             // Display paddle positions
             for (pos, renderable, paddle) in (&positions, &renderables, &paddles).join() {
-                let paddle_type = if paddle.player_controlled { "PLAYER" } else { "AI" };
+                let paddle_type = if paddle.player_controlled {
+                    "PLAYER"
+                } else {
+                    "AI"
+                };
                 println!("{} Paddle: ({:.0}, {:.0})", paddle_type, pos.x, pos.y);
             }
 
@@ -419,7 +463,10 @@ impl<'a> System<'a> for PongRenderingSystem {
                 println!("Ball: ({:.0}, {:.0})", pos.x, pos.y);
             }
 
-            println!("Score - Player: {} | AI: {}", game_state.player_score, game_state.ai_score);
+            println!(
+                "Score - Player: {} | AI: {}",
+                game_state.player_score, game_state.ai_score
+            );
             println!("====================");
         }
     }

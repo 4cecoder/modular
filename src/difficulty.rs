@@ -50,22 +50,28 @@ impl DifficultyConfig {
 
     /// Set a float value for a specific game aspect
     pub fn set_float(&mut self, aspect: &str, value: f32) {
-        self.values.insert(aspect.to_string(), DifficultyValue::Float(value));
+        self.values
+            .insert(aspect.to_string(), DifficultyValue::Float(value));
     }
 
     /// Set an integer value for a specific game aspect
     pub fn set_int(&mut self, aspect: &str, value: i32) {
-        self.values.insert(aspect.to_string(), DifficultyValue::Int(value));
+        self.values
+            .insert(aspect.to_string(), DifficultyValue::Int(value));
     }
 
     /// Set a boolean value for a specific game aspect
     pub fn set_bool(&mut self, aspect: &str, value: bool) {
-        self.values.insert(aspect.to_string(), DifficultyValue::Bool(value));
+        self.values
+            .insert(aspect.to_string(), DifficultyValue::Bool(value));
     }
 
     /// Set a string value for a specific game aspect
     pub fn set_string(&mut self, aspect: &str, value: &str) {
-        self.values.insert(aspect.to_string(), DifficultyValue::String(value.to_string()));
+        self.values.insert(
+            aspect.to_string(),
+            DifficultyValue::String(value.to_string()),
+        );
     }
 
     /// Get a float value for a specific game aspect
@@ -146,7 +152,8 @@ impl DifficultySystem {
 
     /// Register a game aspect with description
     pub fn register_aspect(&mut self, aspect: &str, description: &str) {
-        self.registered_aspects.insert(aspect.to_string(), description.to_string());
+        self.registered_aspects
+            .insert(aspect.to_string(), description.to_string());
     }
 
     /// Register common Pong game aspects
@@ -231,12 +238,14 @@ impl DifficultySystem {
     /// Get the current difficulty configuration
     pub fn get_current_config(&self) -> &DifficultyConfig {
         match self.current_level {
-            DifficultyLevel::Custom => self.custom_config.as_ref().unwrap_or_else(|| {
-                panic!("Custom difficulty not configured")
-            }),
-            level => self.configs.get(&level).unwrap_or_else(|| {
-                panic!("Difficulty level not found: {:?}", level)
-            }),
+            DifficultyLevel::Custom => self
+                .custom_config
+                .as_ref()
+                .unwrap_or_else(|| panic!("Custom difficulty not configured")),
+            level => self
+                .configs
+                .get(&level)
+                .unwrap_or_else(|| panic!("Difficulty level not found: {:?}", level)),
         }
     }
 
@@ -365,7 +374,7 @@ impl DifficultySystem {
                 } else {
                     "Custom"
                 }
-            },
+            }
             level => {
                 if let Some(config) = self.configs.get(&level) {
                     &config.name
@@ -385,7 +394,7 @@ impl DifficultySystem {
                 } else {
                     "Custom difficulty configuration"
                 }
-            },
+            }
             level => {
                 if let Some(config) = self.configs.get(&level) {
                     &config.description
@@ -399,7 +408,10 @@ impl DifficultySystem {
     /// Cycle to the next difficulty level
     pub fn next_level(&mut self) {
         let levels = self.get_available_levels();
-        let current_index = levels.iter().position(|&level| level == self.current_level).unwrap_or(0);
+        let current_index = levels
+            .iter()
+            .position(|&level| level == self.current_level)
+            .unwrap_or(0);
         let next_index = (current_index + 1) % levels.len();
         self.current_level = levels[next_index];
     }
@@ -407,8 +419,15 @@ impl DifficultySystem {
     /// Cycle to the previous difficulty level
     pub fn previous_level(&mut self) {
         let levels = self.get_available_levels();
-        let current_index = levels.iter().position(|&level| level == self.current_level).unwrap_or(0);
-        let prev_index = if current_index == 0 { levels.len() - 1 } else { current_index - 1 };
+        let current_index = levels
+            .iter()
+            .position(|&level| level == self.current_level)
+            .unwrap_or(0);
+        let prev_index = if current_index == 0 {
+            levels.len() - 1
+        } else {
+            current_index - 1
+        };
         self.current_level = levels[prev_index];
     }
 }
@@ -431,7 +450,7 @@ mod tests {
 
     #[test]
     fn test_pong_difficulty_system() {
-        let mut system = DifficultySystem::with_pong_defaults();
+        let system = DifficultySystem::with_pong_defaults();
         assert_eq!(system.get_current_level(), DifficultyLevel::Normal);
 
         // Test helper methods

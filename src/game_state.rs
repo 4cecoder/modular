@@ -23,7 +23,11 @@ pub trait GameState {
     fn render(&mut self, _context: &mut StateContext) {}
 
     /// Handle input for this state
-    fn handle_input(&mut self, _context: &mut StateContext, _input: &crate::input_window::WindowInputState) -> Option<StateTransition> {
+    fn handle_input(
+        &mut self,
+        _context: &mut StateContext,
+        _input: &crate::input_window::WindowInputState,
+    ) -> Option<StateTransition> {
         None
     }
 
@@ -127,7 +131,7 @@ impl StateManager {
 
         // Pause current state (don't exit)
         if let Some(current_id) = self.state_stack.last() {
-            if let Some(current_state) = self.states.get_mut(current_id) {
+            if let Some(_current_state) = self.states.get_mut(current_id) {
                 // Could add on_pause method to GameState trait
             }
         }
@@ -158,7 +162,7 @@ impl StateManager {
 
         // Resume previous state
         if let Some(previous_id) = self.state_stack.last() {
-            if let Some(previous_state) = self.states.get_mut(previous_id) {
+            if let Some(_previous_state) = self.states.get_mut(previous_id) {
                 // Could add on_resume method to GameState trait
             }
         }
@@ -189,7 +193,10 @@ impl StateManager {
     }
 
     /// Handle input for the current state
-    pub fn handle_input(&mut self, input: &crate::input_window::WindowInputState) -> Option<StateTransition> {
+    pub fn handle_input(
+        &mut self,
+        input: &crate::input_window::WindowInputState,
+    ) -> Option<StateTransition> {
         if let Some(current_id) = self.state_stack.last() {
             if let Some(current_state) = self.states.get_mut(current_id) {
                 return current_state.handle_input(&mut self.context, input);
@@ -256,7 +263,11 @@ impl GameState for MenuState {
         StateTransition::None
     }
 
-    fn handle_input(&mut self, _context: &mut StateContext, input: &crate::input_window::WindowInputState) -> Option<StateTransition> {
+    fn handle_input(
+        &mut self,
+        _context: &mut StateContext,
+        input: &crate::input_window::WindowInputState,
+    ) -> Option<StateTransition> {
         use minifb::Key;
 
         if input.is_key_just_pressed(Key::W) || input.is_key_just_pressed(Key::Up) {
@@ -283,7 +294,7 @@ impl GameState for MenuState {
         None
     }
 
-    fn render(&mut self, context: &mut StateContext) {
+    fn render(&mut self, _context: &mut StateContext) {
         // This would render the menu using the rendering system
         // For now, just print to console
         println!("=== MAIN MENU ===");
@@ -321,7 +332,7 @@ impl GameState for GameplayState {
         self.game_time = 0.0;
     }
 
-    fn update(&mut self, context: &mut StateContext, delta_time: f32) -> StateTransition {
+    fn update(&mut self, _context: &mut StateContext, delta_time: f32) -> StateTransition {
         self.game_time += delta_time;
         self.score = (self.game_time * 10.0) as u32; // Simple score based on time
 
@@ -333,7 +344,11 @@ impl GameState for GameplayState {
         StateTransition::None
     }
 
-    fn handle_input(&mut self, _context: &mut StateContext, input: &crate::input_window::WindowInputState) -> Option<StateTransition> {
+    fn handle_input(
+        &mut self,
+        _context: &mut StateContext,
+        input: &crate::input_window::WindowInputState,
+    ) -> Option<StateTransition> {
         use minifb::Key;
 
         if input.is_key_just_pressed(Key::Escape) {
@@ -344,7 +359,10 @@ impl GameState for GameplayState {
     }
 
     fn render(&mut self, _context: &mut StateContext) {
-        println!("🎮 Gameplay - Score: {} | Time: {:.1}s", self.score, self.game_time);
+        println!(
+            "🎮 Gameplay - Score: {} | Time: {:.1}s",
+            self.score, self.game_time
+        );
     }
 
     fn id(&self) -> StateId {
@@ -370,7 +388,11 @@ impl GameState for PauseState {
         StateTransition::None
     }
 
-    fn handle_input(&mut self, _context: &mut StateContext, input: &crate::input_window::WindowInputState) -> Option<StateTransition> {
+    fn handle_input(
+        &mut self,
+        _context: &mut StateContext,
+        input: &crate::input_window::WindowInputState,
+    ) -> Option<StateTransition> {
         use minifb::Key;
 
         if input.is_key_just_pressed(Key::Escape) {
@@ -409,7 +431,11 @@ impl GameState for GameOverState {
         StateTransition::None
     }
 
-    fn handle_input(&mut self, _context: &mut StateContext, input: &crate::input_window::WindowInputState) -> Option<StateTransition> {
+    fn handle_input(
+        &mut self,
+        _context: &mut StateContext,
+        input: &crate::input_window::WindowInputState,
+    ) -> Option<StateTransition> {
         use minifb::Key;
 
         if input.is_key_just_pressed(Key::Space) || input.is_key_just_pressed(Key::Enter) {

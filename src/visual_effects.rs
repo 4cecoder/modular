@@ -112,7 +112,7 @@ impl ScreenShake {
             duration,
             frequency,
             time: 0.0,
-            active: true,
+            active: false,
         }
     }
 
@@ -281,7 +281,8 @@ impl VisualEffectsSystem {
 
         // Remove completed effects
         self.trail_effects.retain(|trail| !trail.points.is_empty());
-        self.color_transitions.retain(|transition| transition.active || transition.loop_effect);
+        self.color_transitions
+            .retain(|transition| transition.active || transition.loop_effect);
     }
 
     /// Add a glow effect
@@ -350,7 +351,14 @@ impl VisualEffectsSystem {
     }
 
     /// Add a point to a trail effect
-    pub fn add_trail_point(&mut self, trail_index: usize, position: Vec2, color: [f32; 4], size: f32, life: f32) {
+    pub fn add_trail_point(
+        &mut self,
+        trail_index: usize,
+        position: Vec2,
+        color: [f32; 4],
+        size: f32,
+        life: f32,
+    ) {
         if let Some(trail) = self.trail_effects.get_mut(trail_index) {
             trail.add_point(position, color, size, life);
         }
@@ -361,7 +369,7 @@ impl VisualEffectsSystem {
         let transition = ColorTransition::new(
             [1.0, 1.0, 1.0, 1.0], // Normal
             [1.0, 0.0, 0.0, 0.8], // Red flash
-            0.2, // Quick flash
+            0.2,                  // Quick flash
         );
         self.add_color_transition(transition)
     }
@@ -383,11 +391,11 @@ impl VisualEffectsSystem {
 
     /// Get the number of active effects
     pub fn active_effects_count(&self) -> usize {
-        self.glow_effects.len() +
-        self.trail_effects.len() +
-        self.color_transitions.len() +
-        self.pulse_effects.len() +
-        if self.screen_shake.active { 1 } else { 0 }
+        self.glow_effects.len()
+            + self.trail_effects.len()
+            + self.color_transitions.len()
+            + self.pulse_effects.len()
+            + if self.screen_shake.active { 1 } else { 0 }
     }
 }
 
@@ -461,11 +469,7 @@ mod tests {
 
     #[test]
     fn test_color_transition() {
-        let mut transition = ColorTransition::new(
-            [0.0, 0.0, 0.0, 1.0],
-            [1.0, 1.0, 1.0, 1.0],
-            1.0,
-        );
+        let mut transition = ColorTransition::new([0.0, 0.0, 0.0, 1.0], [1.0, 1.0, 1.0, 1.0], 1.0);
         transition.start();
 
         let color = transition.update(0.5);
@@ -484,7 +488,13 @@ mod tests {
         let mut system = VisualEffectsSystem::new();
 
         let trail_idx = system.create_ball_trail(20);
-        system.add_trail_point(trail_idx, Vec2::new(10.0, 10.0), [1.0, 0.0, 0.0, 1.0], 3.0, 1.0);
+        system.add_trail_point(
+            trail_idx,
+            Vec2::new(10.0, 10.0),
+            [1.0, 0.0, 0.0, 1.0],
+            3.0,
+            1.0,
+        );
 
         system.update(0.1);
         assert_eq!(system.active_effects_count(), 1);

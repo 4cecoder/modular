@@ -2,8 +2,8 @@
 //!
 //! Artificial intelligence with pathfinding and behavior trees.
 
-use specs::{Component, VecStorage};
 use crate::Vec2;
+use specs::{Component, VecStorage};
 
 /// AI state component
 #[derive(Component, Debug, Clone)]

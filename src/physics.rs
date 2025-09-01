@@ -2,8 +2,8 @@
 //!
 //! Advanced physics simulation with collision detection and response.
 
-use specs::{Component, VecStorage};
 use crate::Vec2;
+use specs::{Component, VecStorage};
 
 /// Mass component for physics objects
 #[derive(Component, Debug, Clone, Copy)]

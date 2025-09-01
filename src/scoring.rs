@@ -55,13 +55,20 @@ impl ScoreEntry {
 #[derive(Debug, Clone)]
 pub enum WinCondition {
     /// First to reach a score threshold
-    ScoreThreshold { target_score: i64, score_type: ScoreType },
+    ScoreThreshold {
+        target_score: i64,
+        score_type: ScoreType,
+    },
     /// Survive for a certain time
     TimeSurvival { duration: Duration },
     /// Eliminate all enemies
     Elimination,
     /// Reach a specific location
-    Location { target_x: f32, target_y: f32, radius: f32 },
+    Location {
+        target_x: f32,
+        target_y: f32,
+        radius: f32,
+    },
     /// Custom win condition
     Custom { condition_id: String },
 }
@@ -90,7 +97,10 @@ pub struct Achievement {
 #[derive(Debug, Clone)]
 pub enum AchievementCondition {
     /// Reach a score threshold
-    ScoreThreshold { score_type: ScoreType, threshold: i64 },
+    ScoreThreshold {
+        score_type: ScoreType,
+        threshold: i64,
+    },
     /// Perform an action a certain number of times
     ActionCount { action: String, count: u32 },
     /// Complete a game with specific conditions
@@ -138,7 +148,10 @@ impl ScoringSystem {
 
     /// Add points to a player's score
     pub fn add_score(&mut self, player_id: &str, score_type: ScoreType, points: i64) -> i64 {
-        let player_scores = self.scores.entry(player_id.to_string()).or_insert_with(HashMap::new);
+        let player_scores = self
+            .scores
+            .entry(player_id.to_string())
+            .or_insert_with(HashMap::new);
         let current_score = player_scores.entry(score_type.clone()).or_insert(0);
         *current_score += points;
 
@@ -170,18 +183,18 @@ impl ScoringSystem {
 
     /// Get all scores for a player
     pub fn get_player_scores(&self, player_id: &str) -> HashMap<ScoreType, i64> {
-        self.scores
-            .get(player_id)
-            .cloned()
-            .unwrap_or_default()
+        self.scores.get(player_id).cloned().unwrap_or_default()
     }
 
     /// Get the leaderboard for a specific score type
     pub fn get_leaderboard(&self, score_type: &ScoreType) -> Vec<(String, i64)> {
-        let mut leaderboard: Vec<(String, i64)> = self.scores
+        let mut leaderboard: Vec<(String, i64)> = self
+            .scores
             .iter()
             .filter_map(|(player_id, scores)| {
-                scores.get(score_type).map(|&score| (player_id.clone(), score))
+                scores
+                    .get(score_type)
+                    .map(|&score| (player_id.clone(), score))
             })
             .collect();
 
@@ -198,18 +211,25 @@ impl ScoringSystem {
     pub fn check_win_conditions(&self) -> GameResult {
         for condition in &self.win_conditions {
             match condition {
-                WinCondition::ScoreThreshold { target_score, score_type } => {
+                WinCondition::ScoreThreshold {
+                    target_score,
+                    score_type,
+                } => {
                     for (player_id, scores) in &self.scores {
                         if let Some(&score) = scores.get(score_type) {
                             if score >= *target_score {
                                 return GameResult::Win {
                                     winner: player_id.clone(),
-                                    reason: format!("Reached {} {}", target_score, format_score_type(score_type)),
+                                    reason: format!(
+                                        "Reached {} {}",
+                                        target_score,
+                                        format_score_type(score_type)
+                                    ),
                                 };
                             }
                         }
                     }
-                },
+                }
                 WinCondition::TimeSurvival { duration } => {
                     if self.game_duration >= *duration {
                         return GameResult::Win {
@@ -217,21 +237,25 @@ impl ScoringSystem {
                             reason: format!("Survived for {:?}", duration),
                         };
                     }
-                },
+                }
                 WinCondition::Elimination => {
                     // Check if all enemies are eliminated
                     // This would need to be integrated with the game state
                     // For now, return Ongoing
-                },
-                WinCondition::Location { target_x, target_y, radius } => {
+                }
+                WinCondition::Location {
+                    target_x: _,
+                    target_y: _,
+                    radius: _,
+                } => {
                     // Check if any player reached the location
                     // This would need position data from the game
                     // For now, return Ongoing
-                },
-                WinCondition::Custom { condition_id } => {
+                }
+                WinCondition::Custom { condition_id: _ } => {
                     // Custom conditions would need to be checked by the game
                     // For now, return Ongoing
-                },
+                }
             }
         }
 
@@ -240,7 +264,8 @@ impl ScoringSystem {
 
     /// Add an achievement
     pub fn add_achievement(&mut self, achievement: Achievement) {
-        self.achievements.insert(achievement.id.clone(), achievement);
+        self.achievements
+            .insert(achievement.id.clone(), achievement);
     }
 
     /// Check achievements for a player
@@ -254,31 +279,35 @@ impl ScoringSystem {
             }
 
             let should_unlock = match &achievement.condition {
-                AchievementCondition::ScoreThreshold { score_type, threshold } => {
-                    self.get_score(player_id, score_type) >= *threshold
-                },
+                AchievementCondition::ScoreThreshold {
+                    score_type,
+                    threshold,
+                } => self.get_score(player_id, score_type) >= *threshold,
                 AchievementCondition::ActionCount { action, count } => {
                     // Count actions from history
-                    let action_count = self.score_history
+                    let action_count = self
+                        .score_history
                         .iter()
                         .filter(|entry| {
-                            entry.player_id == player_id &&
-                            entry.metadata.get("action").map(|a| a == action).unwrap_or(false)
+                            entry.player_id == player_id
+                                && entry
+                                    .metadata
+                                    .get("action")
+                                    .map(|a| a == action)
+                                    .unwrap_or(false)
                         })
                         .count();
                     action_count >= *count as usize
-                },
+                }
                 AchievementCondition::GameCompletion { .. } => {
                     // Would need game completion data
                     false
-                },
-                AchievementCondition::TimeBased { duration } => {
-                    self.game_duration >= *duration
-                },
+                }
+                AchievementCondition::TimeBased { duration } => self.game_duration >= *duration,
                 AchievementCondition::Custom { .. } => {
                     // Custom conditions would need to be checked by the game
                     false
-                },
+                }
             };
 
             if should_unlock {
@@ -297,7 +326,7 @@ impl ScoringSystem {
     }
 
     /// Get unlocked achievements for a player
-    pub fn get_unlocked_achievements(&self, player_id: &str) -> Vec<&Achievement> {
+    pub fn get_unlocked_achievements(&self, _player_id: &str) -> Vec<&Achievement> {
         self.achievements
             .values()
             .filter(|achievement| achievement.unlocked)
@@ -305,7 +334,7 @@ impl ScoringSystem {
     }
 
     /// Update game time
-    pub fn update_time(&mut self, delta_time: f32) {
+    pub fn update_time(&mut self, _delta_time: f32) {
         self.game_duration = self.game_start_time.elapsed();
     }
 

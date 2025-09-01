@@ -3,7 +3,7 @@
 //! Provides cross-platform window creation and management.
 //! Abstracts away platform-specific window handling.
 
-use minifb::{Window, WindowOptions, Key};
+use minifb::{Key, Window, WindowOptions};
 use std::collections::HashSet;
 
 /// Window configuration
@@ -77,7 +77,7 @@ impl WindowManager {
 
     /// Get all currently pressed keys
     pub fn get_pressed_keys(&self) -> HashSet<Key> {
-        let mut keys = HashSet::new();
+        let keys = HashSet::new();
         // Note: minifb doesn't provide a way to enumerate all pressed keys
         // This would need to be implemented differently or use a different library
         keys

@@ -6,9 +6,9 @@
 //! - Force application
 //! - Physics materials
 
+use modular_game_engine::physics::{Force, Mass, PhysicsMaterial};
 use modular_game_engine::*;
-use modular_game_engine::physics::{Mass, Force, PhysicsMaterial};
-use specs::{World, WorldExt, RunNow};
+use specs::{RunNow, World, WorldExt};
 use std::time::{Duration, Instant};
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -74,13 +74,14 @@ fn create_physics_entities(world: &mut World) {
 
     // Create bouncing balls with different properties
     let ball_configs = vec![
-        ("ball1", 0.0, 0.0, 50.0, 20.0, 0.9, 1.0),  // High restitution (bouncy)
+        ("ball1", 0.0, 0.0, 50.0, 20.0, 0.9, 1.0), // High restitution (bouncy)
         ("ball2", 100.0, 0.0, -30.0, 15.0, 0.3, 2.0), // Low restitution, heavier
         ("ball3", -50.0, -50.0, 25.0, 10.0, 0.7, 0.5), // Medium, lighter
     ];
 
     for (name, x, y, vx, vy, restitution, mass) in &ball_configs {
-        world.create_entity_with_components()
+        world
+            .create_entity_with_components()
             .with(Position::new(*x, *y))
             .with(Velocity::new(*vx, *vy))
             .with(Acceleration::new(0.0, 98.0)) // Gravity
@@ -104,14 +105,18 @@ fn create_physics_entities(world: &mut World) {
     ];
 
     for (name, x, y, width, height) in &platform_configs {
-        world.create_entity_with_components()
+        world
+            .create_entity_with_components()
             .with(Position::new(*x, *y))
             .with(Renderable::new(name.to_string()))
             .with(Collider::new_rectangle(*width, *height))
             .build();
     }
 
-    println!("Created {} physics entities", ball_configs.len() + platform_configs.len());
+    println!(
+        "Created {} physics entities",
+        ball_configs.len() + platform_configs.len()
+    );
 }
 
 fn apply_demo_forces(world: &mut World, elapsed_time: f32) {
@@ -139,24 +144,28 @@ fn print_physics_status(world: &World, frame: u64) {
 
     ball_positions.sort_by(|a, b| a.0.cmp(&b.0));
 
-    let ball1_pos = ball_positions.get(0)
+    let ball1_pos = ball_positions
+        .get(0)
         .map(|(_, x, y)| format!("({:6.1},{:6.1})", x, y))
         .unwrap_or("N/A".to_string());
 
-    let ball2_pos = ball_positions.get(1)
+    let ball2_pos = ball_positions
+        .get(1)
         .map(|(_, x, y)| format!("({:6.1},{:6.1})", x, y))
         .unwrap_or("N/A".to_string());
 
     // Count entities (simplified collision detection)
     let entity_count = positions.join().count();
 
-    println!("{:6} | {} | {} | {:9}",
-             frame, ball1_pos, ball2_pos, entity_count);
+    println!(
+        "{:6} | {} | {} | {:9}",
+        frame, ball1_pos, ball2_pos, entity_count
+    );
 }
 
 // Additional systems for the physics demo
 
-use specs::{System, ReadStorage, WriteStorage, Entities, Join};
+use specs::{Entities, Join, ReadStorage, System, WriteStorage};
 
 /// Simple collision detection system
 pub struct CollisionSystem;
@@ -174,7 +183,9 @@ impl<'a> System<'a> for CollisionSystem {
         let mut dynamic_entities = Vec::new();
 
         // Collect dynamic entities (those with velocity)
-        for (entity, position, collider, velocity) in (&entities, &positions, &colliders, &velocities).join() {
+        for (entity, position, collider, velocity) in
+            (&entities, &positions, &colliders, &velocities).join()
+        {
             dynamic_entities.push((entity, position.clone(), collider.clone(), velocity.clone()));
         }
 
@@ -200,7 +211,12 @@ impl<'a> System<'a> for CollisionSystem {
     }
 }
 
-fn check_collision(pos_a: &Position, collider_a: &Collider, pos_b: &Position, collider_b: &Collider) -> bool {
+fn check_collision(
+    pos_a: &Position,
+    collider_a: &Collider,
+    pos_b: &Position,
+    collider_b: &Collider,
+) -> bool {
     match (&collider_a.shape, &collider_b.shape) {
         (CollisionShape::Circle { radius: r1 }, CollisionShape::Circle { radius: r2 }) => {
             let distance = ((pos_a.x - pos_b.x).powi(2) + (pos_a.y - pos_b.y).powi(2)).sqrt();
@@ -223,13 +239,20 @@ impl<'a> System<'a> for PhysicsDebugSystem {
 
     fn run(&mut self, (positions, velocities, forces, renderables): Self::SystemData) {
         // Debug output for physics entities
-        for (position, velocity, force, renderable) in (&positions, &velocities, &forces, &renderables).join() {
+        for (position, velocity, force, renderable) in
+            (&positions, &velocities, &forces, &renderables).join()
+        {
             if renderable.sprite_id.starts_with("ball") {
-                println!("{}: pos=({:.1},{:.1}) vel=({:.1},{:.1}) force=({:.1},{:.1})",
+                println!(
+                    "{}: pos=({:.1},{:.1}) vel=({:.1},{:.1}) force=({:.1},{:.1})",
                     renderable.sprite_id,
-                    position.x, position.y,
-                    velocity.x, velocity.y,
-                    force.0.x, force.0.y);
+                    position.x,
+                    position.y,
+                    velocity.x,
+                    velocity.y,
+                    force.0.x,
+                    force.0.y
+                );
             }
         }
     }
