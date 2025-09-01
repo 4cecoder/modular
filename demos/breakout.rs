@@ -23,6 +23,7 @@ const BRICK_WIDTH: f32 = 60.0;
 const BRICK_HEIGHT: f32 = 20.0;
 const BRICK_ROWS: usize = 6;
 const BRICK_COLS: usize = 13;
+#[allow(dead_code)]
 const PADDLE_SPEED: f32 = 400.0;
 const BALL_SPEED: f32 = 300.0;
 
@@ -96,7 +97,21 @@ pub struct BreakoutGame {
 
 impl BreakoutGame {
     pub fn new() -> Self {
-        let mut world = init().unwrap();
+        let mut world = specs::World::new();
+
+        // Register core components
+        world.register::<Position>();
+        world.register::<Velocity>();
+        world.register::<Acceleration>();
+        world.register::<Renderable>();
+        world.register::<Player>();
+        world.register::<Enemy>();
+        world.register::<Health>();
+        world.register::<Collider>();
+        world.register::<Camera>();
+        world.register::<MarkedForRemoval>();
+        world.register::<Score>();
+        world.register::<Animation>();
 
         // Register game-specific components
         world.register::<Paddle>();
@@ -104,12 +119,16 @@ impl BreakoutGame {
         world.register::<Brick>();
         world.register::<PowerUp>();
 
+        // Add core resources
+        world.insert(Time::default());
+        world.insert(Score::default());
+        
         // Insert required resources
         world.insert(crate::input_window::WindowInputState::default());
 
         // Initialize extracted systems
         let difficulty_system = DifficultySystem::with_pong_defaults();
-        let mut particle_system = ParticleSystem::new();
+        let particle_system = ParticleSystem::new();
         let menu_system = MenuSystem::create_main_menu();
         let visual_effects = VisualEffectsSystem::new();
         let scoring_system = scoring_presets::pong_scoring(5); // Reuse pong scoring for now
@@ -275,7 +294,7 @@ impl BreakoutGame {
         self.paddle_entity = None;
     }
 
-    pub fn update(&mut self, delta_time: f32, input_state: &input_window::WindowInputState) {
+    pub fn update(&mut self, _delta_time: f32, input_state: &input_window::WindowInputState) {
         let current_time = std::time::Instant::now();
         let actual_delta = current_time.duration_since(self.last_update).as_secs_f32();
         self.last_update = current_time;
@@ -365,10 +384,10 @@ impl BreakoutGame {
     fn reset_ball(&mut self) {
         // Reset ball position and attach to paddle
         if let Some(ball_entity) = self.balls.first() {
-            if let Some(mut positions) =
+            if let Some(positions) =
                 self.world.write_storage::<Position>().get_mut(*ball_entity)
             {
-                if let Some(mut velocities) =
+                if let Some(velocities) =
                     self.world.write_storage::<Velocity>().get_mut(*ball_entity)
                 {
                     if let Some(paddle_entity) = self.paddle_entity {
@@ -380,7 +399,7 @@ impl BreakoutGame {
                             velocities.x = 0.0;
                             velocities.y = 0.0;
 
-                            if let Some(mut balls) =
+                            if let Some(balls) =
                                 self.world.write_storage::<Ball>().get_mut(*ball_entity)
                             {
                                 balls.attached_to_paddle = true;
@@ -663,6 +682,12 @@ impl BreakoutGame {
     pub fn handle_input(&mut self, input_state: &input_window::WindowInputState) {
         use minifb::Key;
 
+        // Handle restart from any state
+        if input_state.is_key_just_pressed(Key::R) {
+            self.restart_game();
+            return;
+        }
+
         match &self.game_state {
             BreakoutGameState::Menu => {
                 if input_state.is_key_just_pressed(Key::Space) {
@@ -678,25 +703,28 @@ impl BreakoutGame {
                 // Launch ball if attached to paddle
                 if input_state.is_key_just_pressed(Key::Space) {
                     if let Some(ball_entity) = self.balls.first() {
-                        // Check if ball is attached to paddle first
-                        if let Some(ball) = self.world.read_storage::<Ball>().get(*ball_entity) {
-                            if ball.attached_to_paddle {
-                                // Launch the ball - separate scopes to avoid borrowing conflicts
-                                {
-                                    let mut velocities = self.world.write_storage::<Velocity>();
-                                    if let Some(velocity) = velocities.get_mut(*ball_entity) {
-                                        velocity.x = BALL_SPEED
-                                            * self.difficulty_system.ball_speed_multiplier();
-                                        velocity.y = -BALL_SPEED
-                                            * self.difficulty_system.ball_speed_multiplier();
-                                    }
+                        // Check if ball is attached to paddle and launch it
+                        let should_launch = {
+                            let balls = self.world.read_storage::<Ball>();
+                            balls.get(*ball_entity).map_or(false, |ball| ball.attached_to_paddle)
+                        };
+                        
+                        if should_launch {
+                            // Launch the ball - separate scopes to avoid borrowing conflicts
+                            {
+                                let mut velocities = self.world.write_storage::<Velocity>();
+                                if let Some(velocity) = velocities.get_mut(*ball_entity) {
+                                    velocity.x = BALL_SPEED
+                                        * self.difficulty_system.ball_speed_multiplier();
+                                    velocity.y = -BALL_SPEED
+                                        * self.difficulty_system.ball_speed_multiplier();
                                 }
+                            }
 
-                                {
-                                    let mut balls = self.world.write_storage::<Ball>();
-                                    if let Some(ball_component) = balls.get_mut(*ball_entity) {
-                                        ball_component.attached_to_paddle = false;
-                                    }
+                            {
+                                let mut balls = self.world.write_storage::<Ball>();
+                                if let Some(ball_component) = balls.get_mut(*ball_entity) {
+                                    ball_component.attached_to_paddle = false;
                                 }
                             }
                         }
@@ -709,9 +737,7 @@ impl BreakoutGame {
                 }
             }
             BreakoutGameState::GameOver { .. } => {
-                if input_state.is_key_just_pressed(Key::R) {
-                    self.restart_game();
-                }
+                // R key restart is handled globally above
             }
             BreakoutGameState::LevelComplete => {
                 if input_state.is_key_just_pressed(Key::Space) {
@@ -722,11 +748,13 @@ impl BreakoutGame {
     }
 
     fn restart_game(&mut self) {
+        println!("🔄 Restarting game...");
         self.level = 1;
         self.lives = 3;
         self.scoring_system.reset();
         self.initialize_level();
         self.game_state = BreakoutGameState::Playing;
+        println!("✅ Game restarted! Press SPACE to launch the ball.");
     }
 }
 
@@ -782,7 +810,7 @@ impl<'a> System<'a> for BreakoutCollisionSystem {
 
     fn run(
         &mut self,
-        (entities, mut positions, mut velocities, balls, paddles, bricks, powerups): Self::SystemData,
+        (entities, mut positions, mut velocities, balls, paddles, bricks, _powerups): Self::SystemData,
     ) {
         // Ball-wall collisions
         for (entity, pos, vel, _) in (&entities, &mut positions, &mut velocities, &balls).join() {
@@ -805,7 +833,7 @@ impl<'a> System<'a> for BreakoutCollisionSystem {
         }
 
         // Ball-paddle collisions
-        for (ball_entity, ball_pos, ball_vel, _) in
+        for (_ball_entity, ball_pos, ball_vel, _) in
             (&entities, &positions, &mut velocities, &balls).join()
         {
             for (paddle_pos, _) in (&positions, &paddles).join() {
@@ -832,10 +860,10 @@ impl<'a> System<'a> for BreakoutCollisionSystem {
         // Ball-brick collisions
         let mut bricks_to_remove = Vec::new();
 
-        for (ball_entity, ball_pos, ball_vel, _) in
+        for (_ball_entity, ball_pos, ball_vel, _) in
             (&entities, &positions, &mut velocities, &balls).join()
         {
-            for (brick_entity, brick_pos, brick) in (&entities, &positions, &bricks).join() {
+            for (brick_entity, brick_pos, _brick) in (&entities, &positions, &bricks).join() {
                 if ball_pos.x < brick_pos.x + BRICK_WIDTH
                     && ball_pos.x + BALL_SIZE > brick_pos.x
                     && ball_pos.y < brick_pos.y + BRICK_HEIGHT
@@ -868,7 +896,7 @@ impl<'a> System<'a> for BreakoutGameLogicSystem {
         ReadStorage<'a, Brick>,
     );
 
-    fn run(&mut self, (positions, velocities, balls, bricks): Self::SystemData) {
+    fn run(&mut self, (_positions, _velocities, _balls, _bricks): Self::SystemData) {
         // Game logic updates would go here
         // For now, this is mostly handled in the main game loop
     }
@@ -885,7 +913,7 @@ impl<'a> System<'a> for BreakoutRenderingSystem {
         ReadStorage<'a, Brick>,
     );
 
-    fn run(&mut self, (positions, renderables, paddles, balls, bricks): Self::SystemData) {
+    fn run(&mut self, (_positions, _renderables, _paddles, _balls, _bricks): Self::SystemData) {
         // Rendering is handled in the main render method
     }
 }
@@ -899,7 +927,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     println!("  A/D or Left/Right: Move paddle");
     println!("  SPACE: Launch ball / Start game");
     println!("  ESC: Pause");
-    println!("  R: Restart (game over)");
+    println!("  R: Restart game (any time)");
     println!();
     println!("Features:");
     println!("  ✓ Difficulty scaling");
