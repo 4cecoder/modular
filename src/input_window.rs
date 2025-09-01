@@ -132,6 +132,9 @@ impl WindowInputManager {
             Key::D,
             Key::Space,
             Key::Escape,
+            Key::Tab,
+            Key::LeftShift,
+            Key::RightShift,
             Key::Enter,
             Key::Q,
             Key::Up,
@@ -168,7 +171,9 @@ impl WindowInputManager {
 
         // Update mouse state (simplified - minifb has limited mouse support)
         // In a real implementation, you'd use a more advanced input library
-                let (mouse_x, mouse_y) = window.get_mouse_pos(minifb::MouseMode::Clamp).unwrap_or((0.0, 0.0));
+        let (mouse_x, mouse_y) = window
+            .get_mouse_pos(minifb::MouseMode::Clamp)
+            .unwrap_or((0.0, 0.0));
         self.current_state.mouse_position = (mouse_x as i32, mouse_y as i32);
 
         self.current_state.mouse_delta = (
@@ -191,7 +196,9 @@ impl WindowInputManager {
 
         for button in &current_mouse_buttons {
             if !self.previous_mouse_buttons.contains(button) {
-                self.current_state.mouse_buttons_just_pressed.insert(*button);
+                self.current_state
+                    .mouse_buttons_just_pressed
+                    .insert(*button);
             }
         }
 
@@ -238,7 +245,7 @@ impl WindowInputManager {
     }
 
     /// Update input state from winit event (for winit integration)
-        pub fn update_from_winit_event(&mut self, _event: &winit::event::Event<()>) {
+    pub fn update_from_winit_event(&mut self, _event: &winit::event::Event<()>) {
         // This method is a placeholder for more complex winit event processing
         // For now, it just clears frame state and relies on direct setters
         self.current_state.clear_frame_state();
