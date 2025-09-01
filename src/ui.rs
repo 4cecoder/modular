@@ -184,6 +184,8 @@ pub struct Slider {
     on_change: Option<Box<dyn FnMut(f32)>>,
     // transient dragging state
     dragging: bool,
+    // last emitted value used for coarse updates
+    last_emitted: Option<f32>,
 }
 
 impl std::fmt::Debug for Slider {
@@ -212,6 +214,7 @@ impl Clone for Slider {
             enabled: self.enabled,
             on_change: None,
             dragging: false,
+            last_emitted: Some(self.value),
         }
     }
 }
@@ -228,6 +231,7 @@ impl Slider {
             enabled: true,
             on_change: None,
             dragging: false,
+            last_emitted: None,
         }
     }
 
@@ -239,8 +243,17 @@ impl Slider {
     fn set_value(&mut self, v: f32) {
         let v = v.clamp(self.min, self.max);
         self.value = v;
-        if let Some(cb) = &mut self.on_change {
-            (cb)(v);
+        // emit only when change is significant (coarse) to reduce spam
+        let emit_delta = 0.01; // 1%
+        let should_emit = match self.last_emitted {
+            Some(prev) => (prev - v).abs() >= emit_delta,
+            None => true,
+        };
+        if should_emit {
+            if let Some(cb) = &mut self.on_change {
+                (cb)(v);
+            }
+            self.last_emitted = Some(v);
         }
     }
 
@@ -475,6 +488,12 @@ impl UIManager {
                 if let Widget::Slider(s) = w {
                     if s.dragging {
                         s.dragging = false;
+                        // ensure final value emits even if below delta threshold
+                        if let Some(cb) = &mut s.on_change {
+                            // emit final regardless
+                            (cb)(s.value);
+                            s.last_emitted = Some(s.value);
+                        }
                     }
                 }
             }
@@ -615,6 +634,17 @@ impl UIManager {
                         box_size,
                         renderer_2d::Color::WHITE,
                     );
+                    // checkmark when checked
+                    if t.checked {
+                        // simple X mark
+                        renderer.draw_text(
+                            "X",
+                            (box_x + 3) as usize,
+                            box_y as usize,
+                            renderer_2d::Color::WHITE,
+                            1,
+                        );
+                    }
                     // label text to the right
                     renderer.draw_text(
                         &t.label,
@@ -623,6 +653,18 @@ impl UIManager {
                         self.theme.text_color,
                         1,
                     );
+                    // focus outline
+                    if let Some(fi) = self.focus_index {
+                        if fi == i {
+                            renderer.draw_rect_outline(
+                                box_x - 2,
+                                box_y - 2,
+                                box_size + 4,
+                                box_size + 4,
+                                renderer_2d::Color::YELLOW,
+                            );
+                        }
+                    }
                 }
                 Widget::Slider(s) => {
                     let x = s.position.x as i32;
@@ -635,6 +677,18 @@ impl UIManager {
                     let (kx, ky, kw, kh) = s.knob_rect();
                     renderer.draw_rect(kx, ky, kw, kh, self.theme.button_hover);
                     renderer.draw_rect_outline(kx, ky, kw, kh, renderer_2d::Color::WHITE);
+                    // focus outline for slider
+                    if let Some(fi) = self.focus_index {
+                        if fi == i {
+                            renderer.draw_rect_outline(
+                                x - 2,
+                                y - 2,
+                                w + 4,
+                                h + 4,
+                                renderer_2d::Color::YELLOW,
+                            );
+                        }
+                    }
                 }
             }
         }
@@ -655,6 +709,26 @@ impl UIManager {
         if let Some(&idx) = self.index_by_id.get(id) {
             if let Widget::Button(btn) = &mut self.widgets[idx] {
                 return Some(btn);
+            }
+        }
+        None
+    }
+
+    /// Immutable access to a toggle by id
+    pub fn get_toggle(&self, id: &str) -> Option<&Toggle> {
+        if let Some(&idx) = self.index_by_id.get(id) {
+            if let Widget::Toggle(t) = &self.widgets[idx] {
+                return Some(t);
+            }
+        }
+        None
+    }
+
+    /// Immutable access to a slider by id
+    pub fn get_slider(&self, id: &str) -> Option<&Slider> {
+        if let Some(&idx) = self.index_by_id.get(id) {
+            if let Widget::Slider(s) = &self.widgets[idx] {
+                return Some(s);
             }
         }
         None

@@ -56,6 +56,12 @@ fn main() {
         (WINDOW_HEIGHT / 2 + 50) as f32,
     );
 
+    // Live state labels
+    let music_state_label_id = "music_state_label";
+    let volume_state_label_id = "volume_state_label";
+    let music_state_pos = Vec2::new(20.0, 40.0);
+    let volume_state_pos = Vec2::new(240.0, 60.0);
+
     // Toggle and Slider demo IDs and positions
     let toggle_id = "music_toggle";
     let toggle_label_pos = Vec2::new(20.0, 20.0);
@@ -94,6 +100,13 @@ fn main() {
         clicks_label_pos,
     );
     ui_manager.add_widget(ui::Widget::Label(clicks_label));
+
+    // Add labels to show music and volume state
+    let music_label = ui::Label::new(music_state_label_id, "Music: On", music_state_pos);
+    ui_manager.add_widget(ui::Widget::Label(music_label));
+
+    let volume_label = ui::Label::new(volume_state_label_id, "Volume: 0.80", volume_state_pos);
+    ui_manager.add_widget(ui::Widget::Label(volume_label));
 
     // Add a toggle for music on/off
     let music_on = true;
@@ -137,6 +150,22 @@ fn main() {
                         }
                     }
                 }
+            }
+        }
+
+        // Update live labels from widget states
+        // Read values first (avoid borrowing ui_manager mutably while borrowed immutably)
+        let music_on_state = ui_manager.get_toggle(toggle_id).map(|t| t.checked);
+        let volume_value = ui_manager.get_slider(slider_id).map(|s| s.value);
+
+        if let Some(on) = music_on_state {
+            if let Some(label) = ui_manager.get_label_mut(music_state_label_id) {
+                label.set_text(&format!("Music: {}", if on { "On" } else { "Off" }));
+            }
+        }
+        if let Some(v) = volume_value {
+            if let Some(label) = ui_manager.get_label_mut(volume_state_label_id) {
+                label.set_text(&format!("Volume: {:.2}", v));
             }
         }
 
