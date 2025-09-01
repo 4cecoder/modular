@@ -51,8 +51,8 @@ modular_game_engine/
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd modular_game_engine
+git clone https://github.com/4cecoder/modular
+cd modular
 
 # Build the library
 cargo build
