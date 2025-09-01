@@ -197,8 +197,8 @@ impl ColorTransition {
 
         // Interpolate between start and end colors
         let mut result = [0.0; 4];
-        for i in 0..4 {
-            result[i] = self.start_color[i] + (self.end_color[i] - self.start_color[i]) * t;
+        for (i, item) in result.iter_mut().enumerate() {
+            *item = self.start_color[i] + (self.end_color[i] - self.start_color[i]) * t;
         }
 
         result
@@ -463,6 +463,7 @@ mod tests {
     #[test]
     fn test_screen_shake() {
         let mut shake = ScreenShake::new(10.0, 1.0, 5.0);
+        shake.active = true; // Activate the shake for testing
         let offset = shake.update(0.1);
         assert!(offset.x.abs() > 0.0 || offset.y.abs() > 0.0);
     }

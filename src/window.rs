@@ -77,10 +77,9 @@ impl WindowManager {
 
     /// Get all currently pressed keys
     pub fn get_pressed_keys(&self) -> HashSet<Key> {
-        let keys = HashSet::new();
         // Note: minifb doesn't provide a way to enumerate all pressed keys
         // This would need to be implemented differently or use a different library
-        keys
+        HashSet::new()
     }
 
     /// Update the window (call this each frame)
@@ -112,6 +111,7 @@ pub enum WindowEvent {
 
 /// Window event iterator (placeholder for more advanced event handling)
 pub struct WindowEvents<'a> {
+    #[allow(dead_code)]
     window: &'a Window,
 }
 
@@ -122,6 +122,7 @@ impl<'a> WindowEvents<'a> {
 
     // In a real implementation, this would collect and return events
     // For now, it's a placeholder
+    #[allow(clippy::should_implement_trait)]
     pub fn next(&mut self) -> Option<WindowEvent> {
         None
     }

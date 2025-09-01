@@ -100,6 +100,12 @@ pub struct Trail {
     pub enabled: bool,
 }
 
+impl Default for Trail {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Trail {
     /// Create a new trail with default configuration
     pub fn new() -> Self {
@@ -161,7 +167,7 @@ impl Trail {
 
             // Faster = more opaque/brighter
             color[3] = (color[3] * (0.5 + speed_factor * 0.5)).min(1.0);
-            size = size * (0.8 + speed_factor * 0.4);
+            size *= 0.8 + speed_factor * 0.4;
         }
 
         let segment = TrailSegment::new(position, color, size, self.config.segment_life);

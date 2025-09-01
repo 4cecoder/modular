@@ -10,6 +10,12 @@ pub struct ResourceManager {
     pub sounds: HashMap<String, Sound>,
 }
 
+impl Default for ResourceManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ResourceManager {
     pub fn new() -> Self {
         Self {

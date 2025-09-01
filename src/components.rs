@@ -249,20 +249,11 @@ impl Animation {
 }
 
 /// Score component for tracking game scores
-#[derive(Component, Debug, Clone)]
+#[derive(Component, Debug, Clone, Default)]
 #[storage(DenseVecStorage)]
 pub struct Score {
     pub player_score: u32,
     pub ai_score: u32,
-}
-
-impl Default for Score {
-    fn default() -> Self {
-        Self {
-            player_score: 0,
-            ai_score: 0,
-        }
-    }
 }
 
 /// Paddle component for Pong paddles

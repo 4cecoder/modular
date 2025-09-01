@@ -29,6 +29,12 @@ pub struct Renderer {
     pub clear_color: [f32; 4],
 }
 
+impl Default for Renderer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Renderer {
     pub fn new() -> Self {
         Self {

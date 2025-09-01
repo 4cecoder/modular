@@ -6,20 +6,15 @@
 use std::collections::HashMap;
 
 /// Represents different difficulty levels
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Default)]
 pub enum DifficultyLevel {
     VeryEasy,
     Easy,
+    #[default]
     Normal,
     Hard,
     VeryHard,
     Custom,
-}
-
-impl Default for DifficultyLevel {
-    fn default() -> Self {
-        DifficultyLevel::Normal
-    }
 }
 
 /// Generic value type for difficulty settings

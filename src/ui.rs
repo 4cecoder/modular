@@ -27,6 +27,12 @@ pub struct UIManager {
     pub elements: Vec<UIElement>,
 }
 
+impl Default for UIManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl UIManager {
     pub fn new() -> Self {
         Self {

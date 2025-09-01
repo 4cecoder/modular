@@ -414,8 +414,10 @@ impl MenuSystem {
 
     /// Create a preset main menu
     pub fn create_main_menu() -> Self {
-        let mut config = MenuConfig::default();
-        config.title = "MAIN MENU".to_string();
+        let config = MenuConfig {
+            title: "MAIN MENU".to_string(),
+            ..Default::default()
+        };
 
         let mut menu = Self::new(config);
 
@@ -448,8 +450,10 @@ impl MenuSystem {
 
     /// Create a preset difficulty selection menu
     pub fn create_difficulty_menu() -> Self {
-        let mut config = MenuConfig::default();
-        config.title = "SELECT DIFFICULTY".to_string();
+        let config = MenuConfig {
+            title: "SELECT DIFFICULTY".to_string(),
+            ..Default::default()
+        };
 
         let mut menu = Self::new(config);
 
@@ -490,8 +494,10 @@ impl MenuSystem {
 
     /// Create a preset settings menu
     pub fn create_settings_menu() -> Self {
-        let mut config = MenuConfig::default();
-        config.title = "SETTINGS".to_string();
+        let config = MenuConfig {
+            title: "SETTINGS".to_string(),
+            ..Default::default()
+        };
 
         let mut menu = Self::new(config);
 

@@ -86,8 +86,15 @@ pub enum MouseButton {
 pub struct WindowInputManager {
     current_state: WindowInputState,
     previous_keys: HashSet<Key>,
+    #[allow(dead_code)]
     previous_mouse_buttons: HashSet<MouseButton>,
     previous_mouse_pos: (i32, i32),
+}
+
+impl Default for WindowInputManager {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WindowInputManager {
@@ -191,6 +198,12 @@ pub struct WindowInputMapper {
     action_states: std::collections::HashMap<String, bool>,
 }
 
+impl Default for WindowInputMapper {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl WindowInputMapper {
     /// Create a new input mapper
     pub fn new() -> Self {
@@ -248,6 +261,12 @@ impl WindowInputMapper {
 pub struct WindowGameController {
     input_mapper: WindowInputMapper,
     deadzone: f32,
+}
+
+impl Default for WindowGameController {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl WindowGameController {

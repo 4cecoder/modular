@@ -148,10 +148,7 @@ impl ScoringSystem {
 
     /// Add points to a player's score
     pub fn add_score(&mut self, player_id: &str, score_type: ScoreType, points: i64) -> i64 {
-        let player_scores = self
-            .scores
-            .entry(player_id.to_string())
-            .or_insert_with(HashMap::new);
+        let player_scores = self.scores.entry(player_id.to_string()).or_default();
         let current_score = player_scores.entry(score_type.clone()).or_insert(0);
         *current_score += points;
 

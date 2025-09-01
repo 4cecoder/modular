@@ -39,6 +39,12 @@ pub struct PhysicsWorld {
     pub gravity: Vec2,
 }
 
+impl Default for PhysicsWorld {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl PhysicsWorld {
     pub fn new() -> Self {
         Self {

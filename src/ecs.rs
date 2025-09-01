@@ -21,11 +21,11 @@ pub struct InputState {
 
 /// ECS World extension methods
 pub trait GameWorldExt {
-    fn create_entity_with_components(&mut self) -> EntityBuilder;
+    fn create_entity_with_components(&mut self) -> EntityBuilder<'_>;
 }
 
 impl GameWorldExt for World {
-    fn create_entity_with_components(&mut self) -> EntityBuilder {
+    fn create_entity_with_components(&mut self) -> EntityBuilder<'_> {
         let entity = self.create_entity().build();
         EntityBuilder {
             world: self,

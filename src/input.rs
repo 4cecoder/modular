@@ -17,6 +17,12 @@ pub struct InputManager {
     pub pressed_keys: HashSet<winit::event::VirtualKeyCode>,
 }
 
+impl Default for InputManager {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl InputManager {
     pub fn new() -> Self {
         Self {

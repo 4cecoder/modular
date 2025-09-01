@@ -237,6 +237,12 @@ pub struct MenuState {
     options: Vec<String>,
 }
 
+impl Default for MenuState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MenuState {
     pub fn new() -> Self {
         Self {
@@ -270,16 +276,16 @@ impl GameState for MenuState {
     ) -> Option<StateTransition> {
         use minifb::Key;
 
-        if input.is_key_just_pressed(Key::W) || input.is_key_just_pressed(Key::Up) {
-            if self.selected_option > 0 {
-                self.selected_option -= 1;
-            }
+        if (input.is_key_just_pressed(Key::W) || input.is_key_just_pressed(Key::Up))
+            && self.selected_option > 0
+        {
+            self.selected_option -= 1;
         }
 
-        if input.is_key_just_pressed(Key::S) || input.is_key_just_pressed(Key::Down) {
-            if self.selected_option < self.options.len() - 1 {
-                self.selected_option += 1;
-            }
+        if (input.is_key_just_pressed(Key::S) || input.is_key_just_pressed(Key::Down))
+            && self.selected_option < self.options.len() - 1
+        {
+            self.selected_option += 1;
         }
 
         if input.is_key_just_pressed(Key::Space) || input.is_key_just_pressed(Key::Enter) {
@@ -314,6 +320,12 @@ impl GameState for MenuState {
 pub struct GameplayState {
     score: u32,
     game_time: f32,
+}
+
+impl Default for GameplayState {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl GameplayState {
@@ -372,6 +384,12 @@ impl GameState for GameplayState {
 
 /// Example pause state implementation
 pub struct PauseState;
+
+impl Default for PauseState {
+    fn default() -> Self {
+        Self::new()
+    }
+}
 
 impl PauseState {
     pub fn new() -> Self {

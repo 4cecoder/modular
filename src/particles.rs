@@ -36,6 +36,12 @@ pub struct Particle {
     pub user_data: f32,
 }
 
+impl Default for Particle {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Particle {
     /// Create a new particle with default values
     pub fn new() -> Self {
@@ -69,8 +75,8 @@ impl Particle {
     /// Update particle physics and life
     pub fn update(&mut self, delta_time: f32) {
         // Update physics
-        self.velocity = self.velocity + self.acceleration * delta_time;
-        self.position = self.position + self.velocity * delta_time;
+        self.velocity += self.acceleration * delta_time;
+        self.position += self.velocity * delta_time;
 
         // Update rotation
         self.rotation += self.rotation_speed * delta_time;
@@ -164,6 +170,12 @@ pub struct ParticleEmitter {
     pub emission_timer: f32,
     /// Particles managed by this emitter
     pub particles: Vec<Particle>,
+}
+
+impl Default for ParticleEmitter {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl ParticleEmitter {

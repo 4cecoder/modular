@@ -26,6 +26,12 @@ pub struct AIController {
     pub decision_timer: f32,
 }
 
+impl Default for AIController {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AIController {
     pub fn new() -> Self {
         Self {

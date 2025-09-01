@@ -12,6 +12,7 @@ use std::path::Path;
 /// Font system for loading and rendering TTF fonts
 pub struct FontSystem {
     fonts: HashMap<String, Font<'static>>,
+    #[allow(dead_code)]
     glyph_cache: HashMap<(String, char, u32), Vec<u8>>,
     default_font: Option<String>,
 }
@@ -89,7 +90,7 @@ impl FontSystem {
         let width = glyphs
             .iter()
             .rev()
-            .map(|g| g.position().x as f32 + g.unpositioned().h_metrics().advance_width)
+            .map(|g| g.position().x + g.unpositioned().h_metrics().advance_width)
             .next()
             .unwrap_or(0.0) as usize;
 
@@ -152,7 +153,7 @@ impl FontSystem {
         let width = glyphs
             .iter()
             .rev()
-            .map(|g| g.position().x as f32 + g.unpositioned().h_metrics().advance_width)
+            .map(|g| g.position().x + g.unpositioned().h_metrics().advance_width)
             .next()
             .unwrap_or(0.0);
 

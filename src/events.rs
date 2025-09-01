@@ -12,9 +12,18 @@ pub enum GameEvent {
     Collision,
 }
 
+/// Type alias for event subscriber functions
+type EventSubscriber = Box<dyn Fn(&GameEvent)>;
+
 /// Event bus placeholder
 pub struct EventBus {
-    pub subscribers: HashMap<String, Vec<Box<dyn Fn(&GameEvent)>>>,
+    pub subscribers: HashMap<String, Vec<EventSubscriber>>,
+}
+
+impl Default for EventBus {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl EventBus {

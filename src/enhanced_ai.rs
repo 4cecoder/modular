@@ -173,6 +173,12 @@ pub struct AIDecision {
     pub confidence: f32, // 0.0-1.0, how confident in this decision
 }
 
+impl Default for AIDecision {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AIDecision {
     pub fn new() -> Self {
         Self {
